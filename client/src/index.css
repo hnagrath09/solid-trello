@@ -1,0 +1,11 @@
+@tailwind base;
+
+@layer base {
+  button,
+  [type="button"] {
+    @apply bg-none;
+  }
+}
+
+@tailwind components;
+@tailwind utilities;
