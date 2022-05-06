@@ -1,0 +1,47 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Solid Trello API
+
+servers:
+  - url: http://localhost:8080
+    description: Local server
+
+paths:
+  /lists:
+    get:
+      operationId: GetAllLists
+      tags:
+        - "lists"
+      description: Get all lists
+      responses:
+        "200":
+          description: Get all lists successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/List"
+
+components:
+  schemas:
+    List:
+      type: object
+      required:
+        - id
+        - title
+        - tasks
+      properties:
+        id:
+          type: string
+          example: 80f675b3-d5ad-473e-8ee7-585ddf2c5109
+        title:
+          type: string
+          example: In Progress
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+    Task:
+      type: object
