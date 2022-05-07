@@ -1,4 +1,4 @@
-import { createSignal, Index } from "solid-js";
+import { createResource, createSignal, Index } from "solid-js";
 import { Box, HStack } from "@hope-ui/solid";
 
 import type { Accessor } from "solid-js";
@@ -6,16 +6,21 @@ import type { Accessor } from "solid-js";
 import List from "./components/list";
 import AddList from "./components/add-list";
 
-export default function Board() {
-  const [lists, setLists] = createSignal([
-    { id: 1, title: "Todo", taskIds: [1] },
-    { id: 2, title: "In Progress", taskIds: [2] },
-    { id: 3, title: "In Review", taskIds: [4] },
-    { id: 4, title: "Done", taskIds: [3] },
-    { id: 5, title: "Cancelled", taskIds: [5] },
-  ]);
+type List = {
+  id: number;
+  title: string;
+};
 
-  const [tasks, setTasks] = createSignal([
+// Replace this with openapi genertated code
+async function fetchLists(): Promise<List[]> {
+  const response = await fetch("http://localhost:8080/lists");
+  return response.json();
+}
+
+export default function Board() {
+  const [lists, { mutate }] = createResource(fetchLists);
+
+  const [tasks] = createSignal([
     {
       id: 1,
       listId: 1,
@@ -34,7 +39,7 @@ export default function Board() {
 
   function handleSubmit(listName: Accessor<string>) {
     if (listName().trim().length !== 0) {
-      setLists((lists) => [
+      mutate((lists) => [
         ...lists,
         { id: lists.length + 1, title: listName(), taskIds: [] },
       ]);

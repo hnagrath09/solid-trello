@@ -9,9 +9,12 @@ type AddListProps = {
 
 export default function AddList(props: AddListProps) {
   const { onSubmit } = props;
+  let inputRef: HTMLInputElement | undefined;
+
   const [listName, setListName] = createSignal("");
   const [isCreateList, setIsCreateList] = createSignal(false);
 
+  // submit handler for the add list form
   const handleSubmit = () => {
     onSubmit(listName);
     batch(() => {
@@ -20,13 +23,21 @@ export default function AddList(props: AddListProps) {
     });
   };
 
+  // Click handler for the cancel button
   const handleCancel = batch(() => {
     setIsCreateList(false);
     setListName("");
   });
 
+  // handler for oninput event of the input field
   const handleInput = (e: InputEvent & { currentTarget: HTMLInputElement }) => {
     setListName(e.currentTarget.value);
+  };
+
+  // click handler for the add list button
+  const openListForm = () => {
+    setIsCreateList(true);
+    inputRef?.focus();
   };
 
   return (
@@ -37,7 +48,7 @@ export default function AddList(props: AddListProps) {
           w="$72"
           variant="solid"
           colorScheme="primary"
-          onClick={() => setIsCreateList(true)}
+          onClick={openListForm}
         >
           + Add New List
         </Button>
@@ -54,9 +65,9 @@ export default function AddList(props: AddListProps) {
         onSubmit={handleSubmit}
       >
         <Input
-          fullWidth
           size="sm"
-          autoFocus
+          fullWidth
+          ref={inputRef}
           value={listName()}
           onInput={handleInput}
         />

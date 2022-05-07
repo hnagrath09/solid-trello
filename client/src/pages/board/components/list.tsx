@@ -5,7 +5,6 @@ type ListProps = {
   list: {
     id: number;
     title: string;
-    taskIds: number[];
   };
   tasks: {
     id: number;
@@ -36,7 +35,13 @@ const List = (props: ListProps) => {
       <VStack spacing="$2" alignItems="flex-start">
         <Index each={tasks}>
           {(task) => (
-            <Box bgColor="white" p="$2" borderRadius="$sm" w="100%">
+            <Box
+              p="$2"
+              w="100%"
+              shadow="$sm"
+              bgColor="white"
+              borderRadius="$sm"
+            >
               <Text size="sm">{task().title}</Text>
             </Box>
           )}
