@@ -34,8 +34,8 @@ components:
         - tasks
       properties:
         id:
-          type: string
-          example: 80f675b3-d5ad-473e-8ee7-585ddf2c5109
+          type: number
+          example: 1
         title:
           type: string
           example: In Progress
@@ -45,3 +45,18 @@ components:
             $ref: "#/components/schemas/Task"
     Task:
       type: object
+      required:
+        - id
+        - title
+        - listId
+      properties:
+        id:
+          type: number
+          example: 1
+        title:
+          type: string
+          example: Task 1
+        listId:
+          type: number
+          example: 1
+          description: List id associated with this task

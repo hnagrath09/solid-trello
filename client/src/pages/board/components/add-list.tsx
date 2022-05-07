@@ -1,4 +1,4 @@
-import { createSignal, Show } from "solid-js";
+import { batch, createSignal, Show } from "solid-js";
 import { HiOutlineX } from "solid-icons/hi";
 import { Box, Button, HStack, Input, VStack } from "@hope-ui/solid";
 import type { Accessor } from "solid-js";
@@ -14,14 +14,16 @@ export default function AddList(props: AddListProps) {
 
   const handleSubmit = () => {
     onSubmit(listName);
-    setIsCreateList(false);
-    setListName("");
+    batch(() => {
+      setIsCreateList(false);
+      setListName("");
+    });
   };
 
-  const handleCancel = () => {
+  const handleCancel = batch(() => {
     setIsCreateList(false);
     setListName("");
-  };
+  });
 
   const handleInput = (e: InputEvent & { currentTarget: HTMLInputElement }) => {
     setListName(e.currentTarget.value);
@@ -49,6 +51,7 @@ export default function AddList(props: AddListProps) {
         bgColor="white"
         borderRadius="$md"
         alignItems="flex-start"
+        onSubmit={handleSubmit}
       >
         <Input
           fullWidth
@@ -58,7 +61,7 @@ export default function AddList(props: AddListProps) {
           onInput={handleInput}
         />
         <HStack spacing="$2">
-          <Button size="sm" type="submit" onClick={handleSubmit}>
+          <Button size="sm" type="submit">
             Create List
           </Button>
           <Box

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"net/http"
 
+	"github.com/hnagrath09/solid-trello/constants"
 	spec "github.com/hnagrath09/solid-trello/oapi-specs"
 	"github.com/labstack/echo/v4"
 )
@@ -10,8 +11,7 @@ import (
 type server struct{}
 
 func (s *server) GetAllLists(ctx echo.Context) error {
-	fmt.Println("fetch all lists here")
-	return nil
+	return ctx.JSON(http.StatusOK, constants.Lists())
 }
 
 func main() {

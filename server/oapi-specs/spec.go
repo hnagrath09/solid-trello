@@ -21,13 +21,19 @@ import (
 
 // List defines model for List.
 type List struct {
-	Id    string `json:"id"`
-	Tasks []Task `json:"tasks"`
-	Title string `json:"title"`
+	Id    float32 `json:"id"`
+	Tasks []Task  `json:"tasks"`
+	Title string  `json:"title"`
 }
 
 // Task defines model for Task.
-type Task map[string]interface{}
+type Task struct {
+	Id float32 `json:"id"`
+
+	// List id associated with this task
+	ListId float32 `json:"listId"`
+	Title  string  `json:"title"`
+}
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -305,13 +311,13 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/4yST28bIRDFv8pq2uM6u4m79ZZbTpUlHyI1t8gHArM2CQY6M65qWfvdKyDuP0tVLwbz",
-	"mN885u0ZTDykGDAIgzoDmz0edNluHEteE8WEJA7LqbP5F7/rQ/IICsZ++rganpcLO2i7+LBa4mJEXC2G",
-	"cbB2ujPDbf8JWpBTyrdZyIUdzC2I5tcKFDyUzXvCCRS863456t7sdI+aX0tVxWgifSr/nWQXvxtah+aB",
-	"4o6Q+brv3ALh16MjtKCe8mMujIuj7c+a+PyCRnKX0l2d/xYyzYUpFqkagS/RO9s8Enofm/uHNbTwDYld",
-	"DKDg9qa/6TMwJgw6OVCwLEctJC37MoXOO65R7LCM3yIbckkq4jNKo71v6q1CIp21ta3qvfebN42QUwxc",
-	"c7vr+7yYGARDAeuUvDOluHvhTL/E/9+xlE/kKpY8l3+4bvhoDDJPR+9PJRLRO85x1EdtC4CR8uBAPZ3h",
-	"SB4U7EWS6jofjfb7yKLGfsyj+7PVJstNrYZ5O/8IAAD//7dJDuzhAgAA",
+	"H4sIAAAAAAAC/5xSzW7bMAx+FYHb0aid7VLo1tMQoIcC663IQZWZWK0saSS9LQj87gPlJBtmYD+9RIpI",
+	"fn/mCXweS06YhMGegP2Ao6vX+8CiZ6FckCRgfQ29/uJ3N5aIYDcNyLEgWEjT+IwEcwPi+HXpFRzr5T3h",
+	"Hiy8a3+StWem9tHxa51aYByRO9b/QZTgFy7YJvNA+UDIDNcBFgrpAPPcAOGXKRD2YJ9U5wXjomh3ncnP",
+	"L+hFWSr7W0zGwLKtbT2yp1Ak5AS2pmZCbxxz9sEJ9uZbkMHIENioDmj+kt7at4o0m/+zfNa39qxTIe2z",
+	"Upy54HOOoTePhDFmc/ewhQa+IvHiaHPT3XSqLBdMrgSw8LE+NVCcDDWwVunq7YCyDuUTinExmqWrIpHT",
+	"miao1bsY7881Qi458fIhPnSdHj4nwVSBXSkx+DrcvrCiX5b2nzeuLvZq4zSXP6g2PHmPzPspxmONXtyB",
+	"NfbF1K4CMJIGB/bpBBNFsDCIFNu2MXsXh8xib7tbje63rdGyWaZh3s0/AgAA//8x2QuUlwMAAA==",
 }
 
 // GetSwagger returns the Swagger specification corresponding to the generated code
