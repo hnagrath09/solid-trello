@@ -1,20 +1,13 @@
 import { Index } from "solid-js";
 import { Box, Button, Text, VStack } from "@hope-ui/solid";
+import { List as TList } from "../board";
 
 type ListProps = {
-  list: {
-    id: number;
-    title: string;
-  };
-  tasks: {
-    id: number;
-    listId: number;
-    title: string;
-  }[];
+  list: TList;
 };
 
-const List = (props: ListProps) => {
-  const { list, tasks } = props;
+export default function List(props: ListProps) {
+  const { list } = props;
 
   return (
     <Box
@@ -33,7 +26,7 @@ const List = (props: ListProps) => {
       </Text>
 
       <VStack spacing="$2" alignItems="flex-start">
-        <Index each={tasks}>
+        <Index each={list.tasks}>
           {(task) => (
             <Box
               p="$2"
@@ -55,6 +48,4 @@ const List = (props: ListProps) => {
       </Button>
     </Box>
   );
-};
-
-export default List;
+}
