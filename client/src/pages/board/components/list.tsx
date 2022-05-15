@@ -1,51 +1,113 @@
-import { Index } from "solid-js";
+import { createSignal, For } from "solid-js";
 import { Box, Button, Text, VStack } from "@hope-ui/solid";
+import {
+  closestCenter,
+  DragDropProvider,
+  DragDropSensors,
+  DragOverlay,
+  SortableProvider,
+} from "@thisbeyond/solid-dnd";
+import type { Draggable, Droppable } from "@thisbeyond/solid-dnd";
+
+import Task from "./task";
 import { List as TList } from "../board";
 
 type ListProps = {
   list: TList;
+  onUpdate: (newList: TList) => void;
 };
 
 export default function List(props: ListProps) {
-  const { list } = props;
+  const [activeItem, setActiveItem] = createSignal(null);
+
+  const taskIds = () => props.list.tasks.map((task) => task.id);
+  const sortedTasks = () => props.list.tasks.sort((a, b) => a.order - b.order);
+
+  const onDragStart = ({ draggable }: { draggable: Draggable }) => {
+    const task = props.list.tasks.find((task) => task.id === draggable.id);
+    setActiveItem(task);
+  };
+
+  const getOrder = (taskId: number) => {
+    const task = props.list.tasks.find((task) => task.id === taskId);
+    return task.order;
+  };
+
+  const onDragEnd = ({
+    draggable,
+    droppable,
+  }: {
+    draggable: Draggable;
+    droppable: Droppable;
+  }) => {
+    if (draggable && droppable) {
+      const currentItems = props.list.tasks;
+      const currentOrder = getOrder(draggable.id as number);
+      const newOrder = getOrder(droppable.id as number);
+      if (currentOrder !== newOrder) {
+        const updatedItems = currentItems.map((task) => {
+          if (task.order === currentOrder) {
+            return { ...task, order: newOrder };
+          }
+          if (currentOrder > newOrder && task.order >= newOrder) {
+            return { ...task, order: task.order + 1 };
+          }
+          if (currentOrder < newOrder && task.order <= newOrder) {
+            return { ...task, order: task.order - 1 };
+          }
+          return task;
+        });
+        const updatedList = { ...props.list, tasks: updatedItems };
+        props.onUpdate(updatedList);
+      }
+    }
+    setActiveItem(null);
+  };
 
   return (
-    <Box
-      p="$4"
-      w="$64"
-      h="$96"
-      flex="none"
-      display="flex"
-      maxH="fit-content"
-      borderRadius="$sm"
-      bgColor="$neutral5"
-      flexDirection="column"
+    <DragDropProvider
+      onDragEnd={onDragEnd}
+      onDragStart={onDragStart}
+      collisionDetector={closestCenter}
     >
-      <Text size="sm" fontWeight={700} mb="$2" px="$2">
-        {list.title}
-      </Text>
+      <DragDropSensors />
+      <Box
+        p="$2"
+        w="$64"
+        flex="none"
+        display="flex"
+        maxH="fit-content"
+        borderRadius="$sm"
+        bgColor="$neutral5"
+        flexDirection="column"
+      >
+        <Text size="sm" fontWeight={700} mb="$2" px="$2">
+          {props.list.title}
+        </Text>
 
-      <VStack spacing="$2" alignItems="flex-start">
-        <Index each={list.tasks}>
-          {(task) => (
-            <Box
-              p="$2"
-              w="100%"
-              shadow="$sm"
-              bgColor="white"
-              borderRadius="$sm"
-            >
-              <Text size="sm">{task().title}</Text>
-            </Box>
-          )}
-        </Index>
-      </VStack>
+        <VStack spacing="$2" alignItems="flex-start" mb="$2">
+          <SortableProvider ids={taskIds()}>
+            <For each={sortedTasks()}>{(task) => <Task item={task} />}</For>
+          </SortableProvider>
+        </VStack>
 
-      <Box flex={1} />
+        <DragOverlay>
+          <Box
+            p="$2"
+            w="$full"
+            shadow="$sm"
+            bgColor="white"
+            cursor="grabbing"
+            borderRadius="$sm"
+          >
+            <Text size="sm">{activeItem()?.title}</Text>
+          </Box>
+        </DragOverlay>
 
-      <Button size="sm" variant="ghost" fullWidth>
-        + Add Task
-      </Button>
-    </Box>
+        <Button size="sm" variant="ghost" fullWidth>
+          + Add Task
+        </Button>
+      </Box>
+    </DragDropProvider>
   );
 }
