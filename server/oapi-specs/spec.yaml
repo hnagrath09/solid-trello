@@ -32,6 +32,7 @@ components:
         - id
         - title
         - tasks
+        - order
       properties:
         id:
           type: number
@@ -43,12 +44,16 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Task"
+        order:
+          type: number
+          description: Order of the list in the board
     Task:
       type: object
       required:
         - id
         - title
         - listId
+        - order
       properties:
         id:
           type: number
@@ -60,3 +65,7 @@ components:
           type: number
           example: 1
           description: List id associated with this task
+        order:
+          type: number
+          example: 1
+          description: Order of this task in the list

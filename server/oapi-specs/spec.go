@@ -21,7 +21,10 @@ import (
 
 // List defines model for List.
 type List struct {
-	Id    float32 `json:"id"`
+	Id float32 `json:"id"`
+
+	// Order of the list in the board
+	Order float32 `json:"order"`
 	Tasks []Task  `json:"tasks"`
 	Title string  `json:"title"`
 }
@@ -32,7 +35,10 @@ type Task struct {
 
 	// List id associated with this task
 	ListId float32 `json:"listId"`
-	Title  string  `json:"title"`
+
+	// Order of this task in the list
+	Order float32 `json:"order"`
+	Title string  `json:"title"`
 }
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
@@ -311,13 +317,14 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/5xSzW7bMAx+FYHb0aid7VLo1tMQoIcC663IQZWZWK0saSS9LQj87gPlJBtmYD+9RIpI",
-	"fn/mCXweS06YhMGegP2Ao6vX+8CiZ6FckCRgfQ29/uJ3N5aIYDcNyLEgWEjT+IwEcwPi+HXpFRzr5T3h",
-	"Hiy8a3+StWem9tHxa51aYByRO9b/QZTgFy7YJvNA+UDIDNcBFgrpAPPcAOGXKRD2YJ9U5wXjomh3ncnP",
-	"L+hFWSr7W0zGwLKtbT2yp1Ak5AS2pmZCbxxz9sEJ9uZbkMHIENioDmj+kt7at4o0m/+zfNa39qxTIe2z",
-	"Upy54HOOoTePhDFmc/ewhQa+IvHiaHPT3XSqLBdMrgSw8LE+NVCcDDWwVunq7YCyDuUTinExmqWrIpHT",
-	"miao1bsY7881Qi458fIhPnSdHj4nwVSBXSkx+DrcvrCiX5b2nzeuLvZq4zSXP6g2PHmPzPspxmONXtyB",
-	"NfbF1K4CMJIGB/bpBBNFsDCIFNu2MXsXh8xib7tbje63rdGyWaZh3s0/AgAA//8x2QuUlwMAAA==",
+	"H4sIAAAAAAAC/6RTTW/bMAz9KwK3o1Gn26XQrachQIAVWG9FDorMxGoVSSPpbUHg/z5Qttdh6b4vFi2K",
+	"j+89Smfw+VhywiQM9gzsezy6Gm4Ci66FckGSgHU3dPrFL+5YIoK9bkBOBcFCGo47JBgbyNQh6akO2VMo",
+	"EnICC+912+S9kR5NDCwmpBrvsqMOXgASx09TU8FjDV4T7sHCq/aZdTtTbu8dP9WqCcYRuVP9D6JMvyMN",
+	"62TuKB8ImZ/7slBIBxjHBgg/DoGwA/uggheMhdEicfutNu8e0Yt2qyz+xTV1ZN1d2rapTnXGMWcfnGBn",
+	"PgfpjfSBjfKB5n/HMQMt81AmvwN9wVRVbq7/zs9Z9M8N1eqQ9llbzT3hQ46hM/eEMWZze7eGBj4h8STr",
+	"+mp1taqyCyZXAlh4W7caKE76Oo1W29bogHLpzDsU42I006mKRE5zOh7N3sa4mXOEXHLiacpvVitdfE6C",
+	"qQK7UmLwtbh9ZEVfntgfX+v6DC+utfryC9aGB++ReT/EeKojEHdgtX8Sta0AjKTGgX04w0ARLPQixbZt",
+	"zN7FPrPYm9WNWvfDldS0maph3I5fAwAA///4eRdyRQQAAA==",
 }
 
 // GetSwagger returns the Swagger specification corresponding to the generated code
