@@ -1,0 +1,14 @@
+output   = "./db_models"
+wipe     = true
+no-tests = true
+add-enum-types = true
+
+[psql]
+  dbname    = "trello"
+  host      = "localhost"
+  port      = 5432
+  user      = "postgres"
+  pass      = "Test12345"
+  sslmode   = "disable"
+  schema    = "public"
+  blacklist = ["spatial_ref_sys"]
