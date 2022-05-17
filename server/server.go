@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/hnagrath09/solid-trello/constants"
+	db_api "github.com/hnagrath09/solid-trello/db-api"
 	spec "github.com/hnagrath09/solid-trello/oapi-specs"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -16,9 +17,12 @@ func (s *server) GetAllLists(ctx echo.Context) error {
 }
 
 func main() {
+	// Run DB migrations
+	db_api.Migrator()
+
 	e := echo.New()
 
-	// Middleware
+	// CORS Middleware
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 	}))
