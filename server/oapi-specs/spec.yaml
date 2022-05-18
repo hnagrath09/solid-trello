@@ -23,7 +23,37 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/List"
+  /list:
+    post:
+      operationId: CreateList
+      tags:
+        - "lists"
+      description: Create a list
+      requestBody:
+        description: List to create
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - listOrder
+              properties:
+                title:
+                  type: string
+                  example: "In Progress"
+                listOrder:
+                  type: integer
+                  example: 1
 
+      responses:
+        "201":
+          description: List created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/List"
 components:
   schemas:
     List:
@@ -32,7 +62,7 @@ components:
         - id
         - title
         - tasks
-        - order
+        - listOrder
       properties:
         id:
           type: number
@@ -44,7 +74,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Task"
-        order:
+        listOrder:
           type: number
           description: Order of the list in the board
     Task:
@@ -53,7 +83,7 @@ components:
         - id
         - title
         - listId
-        - order
+        - taskOrder
       properties:
         id:
           type: number
@@ -65,7 +95,7 @@ components:
           type: number
           example: 1
           description: List id associated with this task
-        order:
+        taskOrder:
           type: number
           example: 1
           description: Order of this task in the list

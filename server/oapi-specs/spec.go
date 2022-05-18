@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -24,9 +25,9 @@ type List struct {
 	Id float32 `json:"id"`
 
 	// Order of the list in the board
-	Order float32 `json:"order"`
-	Tasks []Task  `json:"tasks"`
-	Title string  `json:"title"`
+	ListOrder float32 `json:"listOrder"`
+	Tasks     []Task  `json:"tasks"`
+	Title     string  `json:"title"`
 }
 
 // Task defines model for Task.
@@ -37,9 +38,18 @@ type Task struct {
 	ListId float32 `json:"listId"`
 
 	// Order of this task in the list
-	Order float32 `json:"order"`
-	Title string  `json:"title"`
+	TaskOrder float32 `json:"taskOrder"`
+	Title     string  `json:"title"`
 }
+
+// CreateListJSONBody defines parameters for CreateList.
+type CreateListJSONBody struct {
+	ListOrder int    `json:"listOrder"`
+	Title     string `json:"title"`
+}
+
+// CreateListJSONRequestBody defines body for CreateList for application/json ContentType.
+type CreateListJSONRequestBody CreateListJSONBody
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -114,8 +124,35 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// CreateList request  with any body
+	CreateListWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateList(ctx context.Context, body CreateListJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAllLists request
 	GetAllLists(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) CreateListWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateListRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateList(ctx context.Context, body CreateListJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateListRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) GetAllLists(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -127,6 +164,46 @@ func (c *Client) GetAllLists(ctx context.Context, reqEditors ...RequestEditorFn)
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewCreateListRequest calls the generic CreateList builder with application/json body
+func NewCreateListRequest(server string, body CreateListJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateListRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateListRequestWithBody generates requests for CreateList with any type of body
+func NewCreateListRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	queryUrl, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	basePath := fmt.Sprintf("/list")
+	if basePath[0] == '/' {
+		basePath = basePath[1:]
+	}
+
+	queryUrl, err = queryUrl.Parse(basePath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryUrl.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
 }
 
 // NewGetAllListsRequest generates requests for GetAllLists
@@ -200,8 +277,35 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// CreateList request  with any body
+	CreateListWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*CreateListResponse, error)
+
+	CreateListWithResponse(ctx context.Context, body CreateListJSONRequestBody) (*CreateListResponse, error)
+
 	// GetAllLists request
 	GetAllListsWithResponse(ctx context.Context) (*GetAllListsResponse, error)
+}
+
+type CreateListResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *List
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateListResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateListResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type GetAllListsResponse struct {
@@ -226,6 +330,23 @@ func (r GetAllListsResponse) StatusCode() int {
 	return 0
 }
 
+// CreateListWithBodyWithResponse request with arbitrary body returning *CreateListResponse
+func (c *ClientWithResponses) CreateListWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*CreateListResponse, error) {
+	rsp, err := c.CreateListWithBody(ctx, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateListResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateListWithResponse(ctx context.Context, body CreateListJSONRequestBody) (*CreateListResponse, error) {
+	rsp, err := c.CreateList(ctx, body)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateListResponse(rsp)
+}
+
 // GetAllListsWithResponse request returning *GetAllListsResponse
 func (c *ClientWithResponses) GetAllListsWithResponse(ctx context.Context) (*GetAllListsResponse, error) {
 	rsp, err := c.GetAllLists(ctx)
@@ -233,6 +354,32 @@ func (c *ClientWithResponses) GetAllListsWithResponse(ctx context.Context) (*Get
 		return nil, err
 	}
 	return ParseGetAllListsResponse(rsp)
+}
+
+// ParseCreateListResponse parses an HTTP response from a CreateListWithResponse call
+func ParseCreateListResponse(rsp *http.Response) (*CreateListResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateListResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest List
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseGetAllListsResponse parses an HTTP response from a GetAllListsWithResponse call
@@ -264,6 +411,9 @@ func ParseGetAllListsResponse(rsp *http.Response) (*GetAllListsResponse, error) 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
+	// (POST /list)
+	CreateList(ctx echo.Context) error
+
 	// (GET /lists)
 	GetAllLists(ctx echo.Context) error
 }
@@ -271,6 +421,15 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// CreateList converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateList(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.CreateList(ctx)
+	return err
 }
 
 // GetAllLists converts echo context to params.
@@ -310,6 +469,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.POST(baseURL+"/list", wrapper.CreateList)
 	router.GET(baseURL+"/lists", wrapper.GetAllLists)
 
 }
@@ -317,14 +477,16 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/6RTTW/bMAz9KwK3o1Gn26XQrachQIAVWG9FDorMxGoVSSPpbUHg/z5Qttdh6b4vFi2K",
-	"j+89Smfw+VhywiQM9gzsezy6Gm4Ci66FckGSgHU3dPrFL+5YIoK9bkBOBcFCGo47JBgbyNQh6akO2VMo",
-	"EnICC+912+S9kR5NDCwmpBrvsqMOXgASx09TU8FjDV4T7sHCq/aZdTtTbu8dP9WqCcYRuVP9D6JMvyMN",
-	"62TuKB8ImZ/7slBIBxjHBgg/DoGwA/uggheMhdEicfutNu8e0Yt2qyz+xTV1ZN1d2rapTnXGMWcfnGBn",
-	"PgfpjfSBjfKB5n/HMQMt81AmvwN9wVRVbq7/zs9Z9M8N1eqQ9llbzT3hQ46hM/eEMWZze7eGBj4h8STr",
-	"+mp1taqyCyZXAlh4W7caKE76Oo1W29bogHLpzDsU42I006mKRE5zOh7N3sa4mXOEXHLiacpvVitdfE6C",
-	"qQK7UmLwtbh9ZEVfntgfX+v6DC+utfryC9aGB++ReT/EeKojEHdgtX8Sta0AjKTGgX04w0ARLPQixbZt",
-	"zN7FPrPYm9WNWvfDldS0maph3I5fAwAA///4eRdyRQQAAA==",
+	"H4sIAAAAAAAC/5xUT2/bPgz9KgJ/v6NRJ9ul0K3boQgQYAXWW5GDYjOxWkXSRHpbEPi7D5TtNf+aNrvE",
+	"iig9vvdIagdV2MTg0TOB3gFVDW5MXs4tsXxjChETW8y7tpZf/G020SHoaQG8jQgafLtZYoKuAGeJv6Ua",
+	"k5yskapkI9vgQUPeVmGluEEl55T1eb0MJtVwBowNvfSJGTd58X/CFWj4r3xlXg60y0dDL/lWD2NSMtv8",
+	"37Kw3SMOM68eUlgnJHrNS5ysX0PXFZDwR2sT1qCfRPSIMTLal7n4ez8sn7FiyZiZ/Kt7s/rUunl2q1aG",
+	"KFTWMNbql+VGcWNJCScoLgPLmffLMoCNdRE27wKfmivq1fQ6Xwfh+0RPjRUE61dB0g154XtwtlaPCZ0L",
+	"6u5hBgX8xES9tOnN5GYiLENEb6IFDZ/zVgHRcJOrUrqx1UP/PXTna0LDqMxohhTUSEzKNETnfUjEIfGX",
+	"UG8Fpwqe0WdIE6OzVb5WPpPgjsN22iUHA3TGeusZ1296f01j73t/yfIzrchBVVk67ENyajHnoBg89XI+",
+	"TaZXmXFpwLPPb1Hq+dSK2qpColXr3DZLZrMmkSsyCRayVfZrvYM1nqn5PbIyzqn+1HHN75HvnJsPsSOx",
+	"k6vEfuhZ61UfP2unLhyw/oANXQGESYYF9NMO2uRAQ8McdVm6UBnXBGJ9O7mVcTkyXMKqvw3dovsTAAD/",
+	"//I9fIlJBgAA",
 }
 
 // GetSwagger returns the Swagger specification corresponding to the generated code
