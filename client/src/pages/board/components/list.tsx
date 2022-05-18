@@ -10,7 +10,7 @@ import {
 import type { Draggable, Droppable } from "@thisbeyond/solid-dnd";
 
 import Task from "./task";
-import { List as TList } from "../board";
+import { List as TList } from "api";
 
 type ListProps = {
   list: TList;
@@ -20,8 +20,8 @@ type ListProps = {
 export default function List(props: ListProps) {
   const [activeItem, setActiveItem] = createSignal(null);
 
-  const taskIds = () => props.list.tasks.map((task) => task.id);
-  const sortedTasks = () => props.list.tasks.sort((a, b) => a.order - b.order);
+  // const taskIds = () => props.list?.tasks.map((task) => task.id);
+  // const sortedTasks = () => props.list?.tasks.sort((a, b) => a.order - b.order);
 
   const onDragStart = ({ draggable }: { draggable: Draggable }) => {
     const task = props.list.tasks.find((task) => task.id === draggable.id);
@@ -30,7 +30,7 @@ export default function List(props: ListProps) {
 
   const getOrder = (taskId: number) => {
     const task = props.list.tasks.find((task) => task.id === taskId);
-    return task.order;
+    return task.taskOrder;
   };
 
   const onDragEnd = ({
@@ -46,14 +46,14 @@ export default function List(props: ListProps) {
       const newOrder = getOrder(droppable.id as number);
       if (currentOrder !== newOrder) {
         const updatedItems = currentItems.map((task) => {
-          if (task.order === currentOrder) {
+          if (task.taskOrder === currentOrder) {
             return { ...task, order: newOrder };
           }
-          if (currentOrder > newOrder && task.order >= newOrder) {
-            return { ...task, order: task.order + 1 };
+          if (currentOrder > newOrder && task.taskOrder >= newOrder) {
+            return { ...task, order: task.taskOrder + 1 };
           }
-          if (currentOrder < newOrder && task.order <= newOrder) {
-            return { ...task, order: task.order - 1 };
+          if (currentOrder < newOrder && task.taskOrder <= newOrder) {
+            return { ...task, order: task.taskOrder - 1 };
           }
           return task;
         });
@@ -85,11 +85,11 @@ export default function List(props: ListProps) {
           {props.list.title}
         </Text>
 
-        <VStack spacing="$2" alignItems="flex-start" mb="$2">
+        {/* <VStack spacing="$2" alignItems="flex-start" mb="$2">
           <SortableProvider ids={taskIds()}>
             <For each={sortedTasks()}>{(task) => <Task item={task} />}</For>
           </SortableProvider>
-        </VStack>
+        </VStack> */}
 
         <DragOverlay>
           <Box

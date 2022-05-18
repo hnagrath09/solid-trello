@@ -5,26 +5,8 @@ import type { Accessor } from "solid-js";
 
 import List from "./components/list";
 import AddList from "./components/add-list";
-
-export type Task = {
-  id: number;
-  title: string;
-  listId: number;
-  order: number;
-};
-
-export type List = {
-  id: number;
-  title: string;
-  tasks: Task[];
-  order: number;
-};
-
-// Replace this with openapi genertated code
-async function fetchLists(): Promise<List[]> {
-  const response = await fetch("http://localhost:8080/lists");
-  return response.json();
-}
+import { fetchLists } from "./queries";
+import { List as TList } from "api";
 
 export default function Board() {
   const [lists, { mutate }] = createResource(fetchLists);
@@ -37,13 +19,13 @@ export default function Board() {
           id: lists.length + 1,
           title: listName(),
           tasks: [],
-          order: lists.length + 1,
+          listOrder: lists.length + 1,
         },
       ]);
     }
   };
 
-  const reorderList = (updatedList: List) => {
+  const reorderList = (updatedList: TList) => {
     mutate((lists) =>
       lists.map((list) => (list.id === updatedList.id ? updatedList : list))
     );
