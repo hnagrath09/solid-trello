@@ -25,8 +25,8 @@ import (
 type List struct {
 	ID        int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Title     string    `boil:"title" json:"title" toml:"title" yaml:"title"`
-	ListOrder int       `boil:"list_order" json:"list_order" toml:"list_order" yaml:"list_order"`
-	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	ListOrder int       `boil:"list_order" json:"listOrder" toml:"listOrder" yaml:"listOrder"`
+	CreatedAt time.Time `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
 
 	R *listR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L listL  `boil:"-" json:"-" toml:"-" yaml:"-"`

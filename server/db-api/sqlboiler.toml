@@ -1,7 +1,8 @@
-output   = "./db_models"
-wipe     = true
-no-tests = true
-add-enum-types = true
+output            = "./db_models"
+wipe              = true
+no-tests          = true
+add-enum-types    = true
+struct-tag-casing = "camel"
 
 [psql]
   dbname    = "trello"
