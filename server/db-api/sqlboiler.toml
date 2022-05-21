@@ -1,4 +1,4 @@
-output            = "./db_models"
+output            = "../db-api/db_models"
 wipe              = true
 no-tests          = true
 add-enum-types    = true
