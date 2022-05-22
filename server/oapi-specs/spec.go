@@ -48,8 +48,18 @@ type CreateListJSONBody struct {
 	Title     string `json:"title"`
 }
 
+// CreateTaskJSONBody defines parameters for CreateTask.
+type CreateTaskJSONBody struct {
+	ListId    int    `json:"listId"`
+	TaskOrder int    `json:"taskOrder"`
+	Title     string `json:"title"`
+}
+
 // CreateListJSONRequestBody defines body for CreateList for application/json ContentType.
 type CreateListJSONRequestBody CreateListJSONBody
+
+// CreateTaskJSONRequestBody defines body for CreateTask for application/json ContentType.
+type CreateTaskJSONRequestBody CreateTaskJSONBody
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -131,6 +141,11 @@ type ClientInterface interface {
 
 	// GetAllLists request
 	GetAllLists(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateTask request  with any body
+	CreateTaskWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateTask(ctx context.Context, body CreateTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) CreateListWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -157,6 +172,28 @@ func (c *Client) CreateList(ctx context.Context, body CreateListJSONRequestBody,
 
 func (c *Client) GetAllLists(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAllListsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateTaskWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateTaskRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateTask(ctx context.Context, body CreateTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateTaskRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -233,6 +270,46 @@ func NewGetAllListsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewCreateTaskRequest calls the generic CreateTask builder with application/json body
+func NewCreateTaskRequest(server string, body CreateTaskJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateTaskRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateTaskRequestWithBody generates requests for CreateTask with any type of body
+func NewCreateTaskRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	queryUrl, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	basePath := fmt.Sprintf("/task")
+	if basePath[0] == '/' {
+		basePath = basePath[1:]
+	}
+
+	queryUrl, err = queryUrl.Parse(basePath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryUrl.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	req = req.WithContext(ctx)
 	for _, r := range c.RequestEditors {
@@ -284,6 +361,11 @@ type ClientWithResponsesInterface interface {
 
 	// GetAllLists request
 	GetAllListsWithResponse(ctx context.Context) (*GetAllListsResponse, error)
+
+	// CreateTask request  with any body
+	CreateTaskWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*CreateTaskResponse, error)
+
+	CreateTaskWithResponse(ctx context.Context, body CreateTaskJSONRequestBody) (*CreateTaskResponse, error)
 }
 
 type CreateListResponse struct {
@@ -330,6 +412,28 @@ func (r GetAllListsResponse) StatusCode() int {
 	return 0
 }
 
+type CreateTaskResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *Task
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateTaskResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateTaskResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // CreateListWithBodyWithResponse request with arbitrary body returning *CreateListResponse
 func (c *ClientWithResponses) CreateListWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*CreateListResponse, error) {
 	rsp, err := c.CreateListWithBody(ctx, contentType, body)
@@ -354,6 +458,23 @@ func (c *ClientWithResponses) GetAllListsWithResponse(ctx context.Context) (*Get
 		return nil, err
 	}
 	return ParseGetAllListsResponse(rsp)
+}
+
+// CreateTaskWithBodyWithResponse request with arbitrary body returning *CreateTaskResponse
+func (c *ClientWithResponses) CreateTaskWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*CreateTaskResponse, error) {
+	rsp, err := c.CreateTaskWithBody(ctx, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateTaskResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateTaskWithResponse(ctx context.Context, body CreateTaskJSONRequestBody) (*CreateTaskResponse, error) {
+	rsp, err := c.CreateTask(ctx, body)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateTaskResponse(rsp)
 }
 
 // ParseCreateListResponse parses an HTTP response from a CreateListWithResponse call
@@ -408,6 +529,32 @@ func ParseGetAllListsResponse(rsp *http.Response) (*GetAllListsResponse, error) 
 	return response, nil
 }
 
+// ParseCreateTaskResponse parses an HTTP response from a CreateTaskWithResponse call
+func ParseCreateTaskResponse(rsp *http.Response) (*CreateTaskResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateTaskResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest Task
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
@@ -416,6 +563,9 @@ type ServerInterface interface {
 
 	// (GET /lists)
 	GetAllLists(ctx echo.Context) error
+
+	// (POST /task)
+	CreateTask(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -438,6 +588,15 @@ func (w *ServerInterfaceWrapper) GetAllLists(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.GetAllLists(ctx)
+	return err
+}
+
+// CreateTask converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateTask(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.CreateTask(ctx)
 	return err
 }
 
@@ -471,22 +630,24 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.POST(baseURL+"/list", wrapper.CreateList)
 	router.GET(baseURL+"/lists", wrapper.GetAllLists)
+	router.POST(baseURL+"/task", wrapper.CreateTask)
 
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/5xUT2/bPgz9KgJ/v6NRJ9ul0K3boQgQYAXWW5GDYjOxWkXSRHpbEPi7D5TtNf+aNrvE",
-	"iig9vvdIagdV2MTg0TOB3gFVDW5MXs4tsXxjChETW8y7tpZf/G020SHoaQG8jQgafLtZYoKuAGeJv6Ua",
-	"k5yskapkI9vgQUPeVmGluEEl55T1eb0MJtVwBowNvfSJGTd58X/CFWj4r3xlXg60y0dDL/lWD2NSMtv8",
-	"37Kw3SMOM68eUlgnJHrNS5ysX0PXFZDwR2sT1qCfRPSIMTLal7n4ez8sn7FiyZiZ/Kt7s/rUunl2q1aG",
-	"KFTWMNbql+VGcWNJCScoLgPLmffLMoCNdRE27wKfmivq1fQ6Xwfh+0RPjRUE61dB0g154XtwtlaPCZ0L",
-	"6u5hBgX8xES9tOnN5GYiLENEb6IFDZ/zVgHRcJOrUrqx1UP/PXTna0LDqMxohhTUSEzKNETnfUjEIfGX",
-	"UG8Fpwqe0WdIE6OzVb5WPpPgjsN22iUHA3TGeusZ1296f01j73t/yfIzrchBVVk67ENyajHnoBg89XI+",
-	"TaZXmXFpwLPPb1Hq+dSK2qpColXr3DZLZrMmkSsyCRayVfZrvYM1nqn5PbIyzqn+1HHN75HvnJsPsSOx",
-	"k6vEfuhZ61UfP2unLhyw/oANXQGESYYF9NMO2uRAQ8McdVm6UBnXBGJ9O7mVcTkyXMKqvw3dovsTAAD/",
-	"//I9fIlJBgAA",
+	"H4sIAAAAAAAC/8RVT28aPxD9Ktb8fkeUhfYS7S3tIUJCaqTmFnFw1gPrxNiuZ2iKEN+9Gns3ECAEqkq9",
+	"ZB3/efPemz+soQmLGDx6JqjXQE2LC52XE0ss35hCxMQW86418hd/6UV0CPVoALyKCDX45eIRE2wG4Czx",
+	"t2QwyU2D1CQb2QYPNeRtFWaKW1RyT1mf149BJwNHwFjTcwnMuMiL/xPOoIb/qi3zqqNd3Wt6zq8KjE5J",
+	"r/L/loXtDnEYe3WXwjwh0TYucbJ+DpvNABL+WNqEBuoHEd1j9Ix2ZU5f34fHJ2xYImYmf+re2BxaN8lu",
+	"GaWJQmM1o1EvllvFrSUlnGBwGljufJyWDqzPi7D5EPjQXFGvRpf52gnfJXporCBYPwsSrosL34OzRt0n",
+	"dC6om7sxDOAnJirSRlfDq6GwDBG9jhZq+Jy3BhA1tzkrletLPZTvW3e+JtSMSvdmSEK1nEmautNJORJx",
+	"SPwlmJXgNMEz+gypY3S2yc+qJxLcvtkOq+RNAx2x3nrG+bveX1LYu96fsvxIKXJQTZYOu5CclphjUAye",
+	"ipxPw9FFZpxq8Ozze5QKH6No2TRINFs6t8qSWc9J5IpMgqlsVWVdr2GOR3J+i6y0c6rc2s/5LfKNc5Pu",
+	"bE/s8CKxZ421onp/rB268Ib1eTZwP6dOl343YI6V/n05+nulPzZn1P3uMLu4RW6MUSJYdaS3xaw8vqh+",
+	"wp/XO1sqrzPsnCbKI/LfNFH5lXyH0odNVNyZ5veESUYt1A9rWCYHNbTMsa4qFxrt2kBcXw+vZdjutasc",
+	"q/IaNtPN7wAAAP//vcMs9YcIAAA=",
 }
 
 // GetSwagger returns the Swagger specification corresponding to the generated code

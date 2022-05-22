@@ -54,6 +54,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/List"
+  /task:
+    post:
+      operationId: CreateTask
+      tags:
+        - "tasks"
+      description: Create a task
+      requestBody:
+        description: Task to create
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - taskOrder
+                - listId
+              properties:
+                title:
+                  type: string
+                  example: "Add post request to create new tasks"
+                taskOrder:
+                  type: integer
+                  example: 1
+                listId:
+                  type: integer
+                  example: 1
+
+      responses:
+        "201":
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
 components:
   schemas:
     List:
