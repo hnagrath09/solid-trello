@@ -59,6 +59,31 @@ export interface InlineObject {
 /**
  *
  * @export
+ * @interface InlineObject1
+ */
+export interface InlineObject1 {
+  /**
+   *
+   * @type {string}
+   * @memberof InlineObject1
+   */
+  title: string;
+  /**
+   *
+   * @type {number}
+   * @memberof InlineObject1
+   */
+  taskOrder: number;
+  /**
+   *
+   * @type {number}
+   * @memberof InlineObject1
+   */
+  listId: number;
+}
+/**
+ *
+ * @export
  * @interface List
  */
 export interface List {
@@ -332,6 +357,148 @@ export class ListsApi extends BaseAPI {
   public getAllLists(options?: any) {
     return ListsApiFp(this.configuration)
       .getAllLists(options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+}
+
+/**
+ * TasksApi - axios parameter creator
+ * @export
+ */
+export const TasksApiAxiosParamCreator = function (
+  configuration?: Configuration
+) {
+  return {
+    /**
+     * Create a task
+     * @param {InlineObject1} inlineObject1
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createTask: async (
+      inlineObject1: InlineObject1,
+      options: any = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'inlineObject1' is not null or undefined
+      assertParamExists("createTask", "inlineObject1", inlineObject1);
+      const localVarPath = `/task`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = {
+        method: "POST",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      localVarHeaderParameter["Content-Type"] = "application/json";
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        inlineObject1,
+        localVarRequestOptions,
+        configuration
+      );
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
+};
+
+/**
+ * TasksApi - functional programming interface
+ * @export
+ */
+export const TasksApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = TasksApiAxiosParamCreator(configuration);
+  return {
+    /**
+     * Create a task
+     * @param {InlineObject1} inlineObject1
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async createTask(
+      inlineObject1: InlineObject1,
+      options?: any
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<Task>
+    > {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createTask(
+        inlineObject1,
+        options
+      );
+      return createRequestFunction(
+        localVarAxiosArgs,
+        globalAxios,
+        BASE_PATH,
+        configuration
+      );
+    },
+  };
+};
+
+/**
+ * TasksApi - factory interface
+ * @export
+ */
+export const TasksApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance
+) {
+  const localVarFp = TasksApiFp(configuration);
+  return {
+    /**
+     * Create a task
+     * @param {InlineObject1} inlineObject1
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createTask(
+      inlineObject1: InlineObject1,
+      options?: any
+    ): AxiosPromise<Task> {
+      return localVarFp
+        .createTask(inlineObject1, options)
+        .then((request) => request(axios, basePath));
+    },
+  };
+};
+
+/**
+ * TasksApi - object-oriented interface
+ * @export
+ * @class TasksApi
+ * @extends {BaseAPI}
+ */
+export class TasksApi extends BaseAPI {
+  /**
+   * Create a task
+   * @param {InlineObject1} inlineObject1
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof TasksApi
+   */
+  public createTask(inlineObject1: InlineObject1, options?: any) {
+    return TasksApiFp(this.configuration)
+      .createTask(inlineObject1, options)
       .then((request) => request(this.axios, this.basePath));
   }
 }
