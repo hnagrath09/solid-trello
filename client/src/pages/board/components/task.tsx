@@ -1,7 +1,6 @@
 import { Box, Text } from "@hope-ui/solid";
 import { createSortable } from "@thisbeyond/solid-dnd";
-import { Task as TTask } from "../board";
-
+import { Task as TTask } from "api";
 declare module "solid-js" {
   namespace JSX {
     interface Directives {

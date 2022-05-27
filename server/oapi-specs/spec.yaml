@@ -101,7 +101,7 @@ components:
         - listOrder
       properties:
         id:
-          type: number
+          type: integer
           example: 1
         title:
           type: string
@@ -111,7 +111,7 @@ components:
           items:
             $ref: "#/components/schemas/Task"
         listOrder:
-          type: number
+          type: integer
           description: Order of the list in the board
     Task:
       type: object
@@ -122,16 +122,16 @@ components:
         - taskOrder
       properties:
         id:
-          type: number
+          type: integer
           example: 1
         title:
           type: string
           example: Task 1
         listId:
-          type: number
+          type: integer
           example: 1
           description: List id associated with this task
         taskOrder:
-          type: number
+          type: integer
           example: 1
           description: Order of this task in the list

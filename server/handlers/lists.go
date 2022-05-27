@@ -9,6 +9,7 @@ import (
 	spec "github.com/hnagrath09/solid-trello/oapi-specs"
 	"github.com/labstack/echo/v4"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 type Server struct {
@@ -16,13 +17,32 @@ type Server struct {
 }
 
 func (s *Server) GetAllLists(ctx echo.Context) error {
-	lists, err := models.Lists().All(ctx.Request().Context(), s.Db)
-
+	lists, err := models.Lists(qm.Load(models.ListRels.Tasks)).All(ctx.Request().Context(), s.Db)
 	if err != nil {
 		log.Fatal("Error getting all lists: ", err)
 	}
 
-	return ctx.JSON(http.StatusOK, lists)
+	var respBody []spec.List
+	for _, list := range lists {
+		var Tasks []spec.Task
+		for _, task := range list.R.Tasks {
+			Tasks = append(Tasks, spec.Task{
+				Id:        int(task.ID),
+				Title:     task.Title,
+				TaskOrder: task.TaskOrder,
+				ListId:    int(task.ListID),
+			})
+		}
+
+		respBody = append(respBody, spec.List{
+			Id:        int(list.ID),
+			Title:     list.Title,
+			ListOrder: list.ListOrder,
+			Tasks:     Tasks,
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, respBody)
 }
 
 func (s *Server) CreateList(ctx echo.Context) error {

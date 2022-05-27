@@ -22,24 +22,24 @@ import (
 
 // List defines model for List.
 type List struct {
-	Id float32 `json:"id"`
+	Id int `json:"id"`
 
 	// Order of the list in the board
-	ListOrder float32 `json:"listOrder"`
-	Tasks     []Task  `json:"tasks"`
-	Title     string  `json:"title"`
+	ListOrder int    `json:"listOrder"`
+	Tasks     []Task `json:"tasks"`
+	Title     string `json:"title"`
 }
 
 // Task defines model for Task.
 type Task struct {
-	Id float32 `json:"id"`
+	Id int `json:"id"`
 
 	// List id associated with this task
-	ListId float32 `json:"listId"`
+	ListId int `json:"listId"`
 
 	// Order of this task in the list
-	TaskOrder float32 `json:"taskOrder"`
-	Title     string  `json:"title"`
+	TaskOrder int    `json:"taskOrder"`
+	Title     string `json:"title"`
 }
 
 // CreateListJSONBody defines parameters for CreateList.
@@ -637,17 +637,17 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8RVT28aPxD9Ktb8fkeUhfYS7S3tIUJCaqTmFnFw1gPrxNiuZ2iKEN+9Gns3ECAEqkq9",
-	"ZB3/efPemz+soQmLGDx6JqjXQE2LC52XE0ss35hCxMQW86418hd/6UV0CPVoALyKCDX45eIRE2wG4Czx",
-	"t2QwyU2D1CQb2QYPNeRtFWaKW1RyT1mf149BJwNHwFjTcwnMuMiL/xPOoIb/qi3zqqNd3Wt6zq8KjE5J",
-	"r/L/loXtDnEYe3WXwjwh0TYucbJ+DpvNABL+WNqEBuoHEd1j9Ix2ZU5f34fHJ2xYImYmf+re2BxaN8lu",
-	"GaWJQmM1o1EvllvFrSUlnGBwGljufJyWDqzPi7D5EPjQXFGvRpf52gnfJXporCBYPwsSrosL34OzRt0n",
-	"dC6om7sxDOAnJirSRlfDq6GwDBG9jhZq+Jy3BhA1tzkrletLPZTvW3e+JtSMSvdmSEK1nEmautNJORJx",
-	"SPwlmJXgNMEz+gypY3S2yc+qJxLcvtkOq+RNAx2x3nrG+bveX1LYu96fsvxIKXJQTZYOu5CclphjUAye",
-	"ipxPw9FFZpxq8Ozze5QKH6No2TRINFs6t8qSWc9J5IpMgqlsVWVdr2GOR3J+i6y0c6rc2s/5LfKNc5Pu",
-	"bE/s8CKxZ421onp/rB268Ib1eTZwP6dOl343YI6V/n05+nulPzZn1P3uMLu4RW6MUSJYdaS3xaw8vqh+",
-	"wp/XO1sqrzPsnCbKI/LfNFH5lXyH0odNVNyZ5veESUYt1A9rWCYHNbTMsa4qFxrt2kBcXw+vZdjutasc",
-	"q/IaNtPN7wAAAP//vcMs9YcIAAA=",
+	"H4sIAAAAAAAC/8RVTW8bOQz9KwJ3j0bG3r0Ec8vuITBgoAGaW+CDMqI9SmRJFemmhuH/XlCaiT8T20WB",
+	"XjKKPsj3HsnnNTRhEYNHzwT1GqhpcaHzcmKJ5RtTiJjYYt61Rv7iD72IDqEeDYBXEaEG6xnnmGAzAGeJ",
+	"vySDSa4apCbZyDZ4qCFvqzBT3KKSe8r6vH4OOhk4FY01vZbUjIu8+DvhDGr4q9pirzrg1aOm1/yqxNEp",
+	"6VX+37Lg3YEOY68eUpgnJNomJk7Wz2GzGUDCb0ub0ED9JLT7GD2iXZ7T9/fh+QUblowZyS/rNzbH4k2y",
+	"XkZpotBYzWjUm+VWcWtJCSgYnIksl85XpovWl0bgnI98rK8IoEbXSdtR30V6rK1EsH4WJF2XF74GZ416",
+	"TOhcUHcPYxjAd0xUuI1uhjdDQRkieh0t1PBv3hpA1NzmwlSu7/dQvvvy/J9QMyrdqyE11XImhepOJ+VI",
+	"yCHxf8GsJE4TPKPPIXWMzjb5WfVCErefuONG2Ruiq7W/prd3tf9M8hPNyEE1mTrshuS0xJyDYvBU6Pwz",
+	"HF0lxmcznnX+CFLBYxQtmwaJZkvnVpky6zkJXaFJMJWtqqzrNczxRM3vkZV2TpVbhzW/R75zbtKdHZAd",
+	"XkX2ImcrrA+d7ViFPdSXycC9VX3e+p3FnGr9x3L0+1p/fIFP7rnZ1SNyZ4wSwqoDvW1m5fFN9SZ/2exs",
+	"obx72CVDlC3yzwxR+aH8ANLZISrqTPN7wiRWC/XTGpbJQQ0tc6yryoVGuzYQ17fDWzHbg3GVY1Vew2a6",
+	"+RkAAP//7MMQd4wIAAA=",
 }
 
 // GetSwagger returns the Swagger specification corresponding to the generated code

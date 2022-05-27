@@ -20,8 +20,9 @@ type ListProps = {
 export default function List(props: ListProps) {
   const [activeItem, setActiveItem] = createSignal(null);
 
-  // const taskIds = () => props.list?.tasks.map((task) => task.id);
-  // const sortedTasks = () => props.list?.tasks.sort((a, b) => a.order - b.order);
+  const taskIds = () => props.list?.tasks?.map((task) => task.id) ?? [];
+  const sortedTasks = () =>
+    props.list.tasks?.sort((a, b) => a.taskOrder - b.taskOrder) ?? [];
 
   const onDragStart = ({ draggable }: { draggable: Draggable }) => {
     const task = props.list.tasks.find((task) => task.id === draggable.id);
@@ -85,11 +86,11 @@ export default function List(props: ListProps) {
           {props.list.title}
         </Text>
 
-        {/* <VStack spacing="$2" alignItems="flex-start" mb="$2">
+        <VStack spacing="$2" alignItems="flex-start" mb="$2">
           <SortableProvider ids={taskIds()}>
             <For each={sortedTasks()}>{(task) => <Task item={task} />}</For>
           </SortableProvider>
-        </VStack> */}
+        </VStack>
 
         <DragOverlay>
           <Box
