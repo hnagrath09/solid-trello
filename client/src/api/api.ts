@@ -145,10 +145,10 @@ export interface Task {
 }
 
 /**
- * ListsApi - axios parameter creator
+ * ApplicationApi - axios parameter creator
  * @export
  */
-export const ListsApiAxiosParamCreator = function (
+export const ApplicationApiAxiosParamCreator = function (
   configuration?: Configuration
 ) {
   return {
@@ -202,174 +202,6 @@ export const ListsApiAxiosParamCreator = function (
       };
     },
     /**
-     * Get all lists
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getAllLists: async (options: any = {}): Promise<RequestArgs> => {
-      const localVarPath = `/lists`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = {
-        method: "GET",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-  };
-};
-
-/**
- * ListsApi - functional programming interface
- * @export
- */
-export const ListsApiFp = function (configuration?: Configuration) {
-  const localVarAxiosParamCreator = ListsApiAxiosParamCreator(configuration);
-  return {
-    /**
-     * Create a list
-     * @param {InlineObject} inlineObject
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async createList(
-      inlineObject: InlineObject,
-      options?: any
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<List>
-    > {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.createList(
-        inlineObject,
-        options
-      );
-      return createRequestFunction(
-        localVarAxiosArgs,
-        globalAxios,
-        BASE_PATH,
-        configuration
-      );
-    },
-    /**
-     * Get all lists
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async getAllLists(
-      options?: any
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<List>>
-    > {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.getAllLists(
-        options
-      );
-      return createRequestFunction(
-        localVarAxiosArgs,
-        globalAxios,
-        BASE_PATH,
-        configuration
-      );
-    },
-  };
-};
-
-/**
- * ListsApi - factory interface
- * @export
- */
-export const ListsApiFactory = function (
-  configuration?: Configuration,
-  basePath?: string,
-  axios?: AxiosInstance
-) {
-  const localVarFp = ListsApiFp(configuration);
-  return {
-    /**
-     * Create a list
-     * @param {InlineObject} inlineObject
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createList(inlineObject: InlineObject, options?: any): AxiosPromise<List> {
-      return localVarFp
-        .createList(inlineObject, options)
-        .then((request) => request(axios, basePath));
-    },
-    /**
-     * Get all lists
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getAllLists(options?: any): AxiosPromise<Array<List>> {
-      return localVarFp
-        .getAllLists(options)
-        .then((request) => request(axios, basePath));
-    },
-  };
-};
-
-/**
- * ListsApi - object-oriented interface
- * @export
- * @class ListsApi
- * @extends {BaseAPI}
- */
-export class ListsApi extends BaseAPI {
-  /**
-   * Create a list
-   * @param {InlineObject} inlineObject
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof ListsApi
-   */
-  public createList(inlineObject: InlineObject, options?: any) {
-    return ListsApiFp(this.configuration)
-      .createList(inlineObject, options)
-      .then((request) => request(this.axios, this.basePath));
-  }
-
-  /**
-   * Get all lists
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof ListsApi
-   */
-  public getAllLists(options?: any) {
-    return ListsApiFp(this.configuration)
-      .getAllLists(options)
-      .then((request) => request(this.axios, this.basePath));
-  }
-}
-
-/**
- * TasksApi - axios parameter creator
- * @export
- */
-export const TasksApiAxiosParamCreator = function (
-  configuration?: Configuration
-) {
-  return {
-    /**
      * Create a task
      * @param {InlineObject1} inlineObject1
      * @param {*} [options] Override http request option.
@@ -418,16 +250,76 @@ export const TasksApiAxiosParamCreator = function (
         options: localVarRequestOptions,
       };
     },
+    /**
+     * Get all lists
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAllLists: async (options: any = {}): Promise<RequestArgs> => {
+      const localVarPath = `/lists`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
   };
 };
 
 /**
- * TasksApi - functional programming interface
+ * ApplicationApi - functional programming interface
  * @export
  */
-export const TasksApiFp = function (configuration?: Configuration) {
-  const localVarAxiosParamCreator = TasksApiAxiosParamCreator(configuration);
+export const ApplicationApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator =
+    ApplicationApiAxiosParamCreator(configuration);
   return {
+    /**
+     * Create a list
+     * @param {InlineObject} inlineObject
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async createList(
+      inlineObject: InlineObject,
+      options?: any
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<List>
+    > {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createList(
+        inlineObject,
+        options
+      );
+      return createRequestFunction(
+        localVarAxiosArgs,
+        globalAxios,
+        BASE_PATH,
+        configuration
+      );
+    },
     /**
      * Create a task
      * @param {InlineObject1} inlineObject1
@@ -451,20 +343,51 @@ export const TasksApiFp = function (configuration?: Configuration) {
         configuration
       );
     },
+    /**
+     * Get all lists
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getAllLists(
+      options?: any
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<List>>
+    > {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getAllLists(
+        options
+      );
+      return createRequestFunction(
+        localVarAxiosArgs,
+        globalAxios,
+        BASE_PATH,
+        configuration
+      );
+    },
   };
 };
 
 /**
- * TasksApi - factory interface
+ * ApplicationApi - factory interface
  * @export
  */
-export const TasksApiFactory = function (
+export const ApplicationApiFactory = function (
   configuration?: Configuration,
   basePath?: string,
   axios?: AxiosInstance
 ) {
-  const localVarFp = TasksApiFp(configuration);
+  const localVarFp = ApplicationApiFp(configuration);
   return {
+    /**
+     * Create a list
+     * @param {InlineObject} inlineObject
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createList(inlineObject: InlineObject, options?: any): AxiosPromise<List> {
+      return localVarFp
+        .createList(inlineObject, options)
+        .then((request) => request(axios, basePath));
+    },
     /**
      * Create a task
      * @param {InlineObject1} inlineObject1
@@ -479,26 +402,61 @@ export const TasksApiFactory = function (
         .createTask(inlineObject1, options)
         .then((request) => request(axios, basePath));
     },
+    /**
+     * Get all lists
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAllLists(options?: any): AxiosPromise<Array<List>> {
+      return localVarFp
+        .getAllLists(options)
+        .then((request) => request(axios, basePath));
+    },
   };
 };
 
 /**
- * TasksApi - object-oriented interface
+ * ApplicationApi - object-oriented interface
  * @export
- * @class TasksApi
+ * @class ApplicationApi
  * @extends {BaseAPI}
  */
-export class TasksApi extends BaseAPI {
+export class ApplicationApi extends BaseAPI {
+  /**
+   * Create a list
+   * @param {InlineObject} inlineObject
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApplicationApi
+   */
+  public createList(inlineObject: InlineObject, options?: any) {
+    return ApplicationApiFp(this.configuration)
+      .createList(inlineObject, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
   /**
    * Create a task
    * @param {InlineObject1} inlineObject1
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
-   * @memberof TasksApi
+   * @memberof ApplicationApi
    */
   public createTask(inlineObject1: InlineObject1, options?: any) {
-    return TasksApiFp(this.configuration)
+    return ApplicationApiFp(this.configuration)
       .createTask(inlineObject1, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Get all lists
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApplicationApi
+   */
+  public getAllLists(options?: any) {
+    return ApplicationApiFp(this.configuration)
+      .getAllLists(options)
       .then((request) => request(this.axios, this.basePath));
   }
 }

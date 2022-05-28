@@ -1,5 +1,5 @@
 import { createSignal, For } from "solid-js";
-import { Box, Button, Text, VStack } from "@hope-ui/solid";
+import { Box, Text, VStack } from "@hope-ui/solid";
 import {
   closestCenter,
   DragDropProvider,
@@ -11,6 +11,7 @@ import type { Draggable, Droppable } from "@thisbeyond/solid-dnd";
 
 import Task from "./task";
 import { List as TList } from "api";
+import AddTask from "./add-task";
 
 type ListProps = {
   list: TList;
@@ -105,9 +106,7 @@ export default function List(props: ListProps) {
           </Box>
         </DragOverlay>
 
-        <Button size="sm" variant="ghost" fullWidth>
-          + Add Task
-        </Button>
+        <AddTask listId={props.list.id} tasksCount={sortedTasks().length} />
       </Box>
     </DragDropProvider>
   );

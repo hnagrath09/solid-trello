@@ -12,7 +12,7 @@ paths:
     get:
       operationId: GetAllLists
       tags:
-        - "lists"
+        - "application"
       description: Get all lists
       responses:
         "200":
@@ -27,7 +27,7 @@ paths:
     post:
       operationId: CreateList
       tags:
-        - "lists"
+        - "application"
       description: Create a list
       requestBody:
         description: List to create
@@ -58,7 +58,7 @@ paths:
     post:
       operationId: CreateTask
       tags:
-        - "tasks"
+        - "application"
       description: Create a task
       requestBody:
         description: Task to create
