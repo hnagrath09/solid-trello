@@ -71,9 +71,7 @@ type CreateTaskJSONBody struct {
 }
 
 // UpdateTaskJSONBody defines parameters for UpdateTask.
-type UpdateTaskJSONBody struct {
-	Schema *UpdateTaskForm `json:"schema,omitempty"`
-}
+type UpdateTaskJSONBody UpdateTaskForm
 
 // CreateListJSONRequestBody defines body for CreateList for application/json ContentType.
 type CreateListJSONRequestBody CreateListJSONBody
@@ -824,19 +822,19 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9xWwW7jOAz9FYG7R6NOupfCt+4CWwQIMAWmcypyUG0mVqtIGolpJwjy7wNKdp3ESRsX",
-	"xQwwpziSSD4+kk/aQGmXzho0FKDYgJNeLpHQx38kw9Ok4i9loAAnqYYMjFwiFO1mBh6/r5THCgryK8wg",
-	"lDUuJVvhD7l0GqG4zIDWjq2UIVygh+12256MoaYqUATgrUNPCuOqqvbcjPtuMtAq0BdfoeejFYbSK0fK",
-	"MuC4LOxcUI2Czwll4veDlZ6h971xVik04TJ+/O1xDgX8lXdM5Q3w/E6Gp2iV/Ejv5Tr+V8R4d6DDxIhb",
-	"bxceQ+gCB/LKLIC56Fi857RbHy2i3Txnr/b24RFL4ogRyYf5S0XeJ28a+aqEDMGWShJW4kVRLahWQTAo",
-	"yN7xzIfer0zjrS0Nw3nfc59fJkCMh1HbpL6L9Bi331wlCTnA/9Yv+yz/+QweUMJLysxt1IjkCL5arSpx",
-	"51FrK65vJ5DBM/qQwI4vRhcjDmsdGukUFPBPXMqiqEQWc91KgE2/+/n+51ESCtmmxwWQvMfMN7vTtMX1",
-	"xkD/2mrNfkprCE10KZ3Tqoxm+WNgv5sduepX9ZX7wWQOGffddjzVhWxzpLvIijKm3tPhGCM4a0JK53I0",
-	"HkTGW7IXeT4FKeGpRFiVJYYwX2m9Tk0kF4HT3YkLM96IlY8gF3ik8jdIQmot0qnDyt8gXWs9bfYOUh4N",
-	"SvksyU+5H0p+n4s91EPIoFbJ3x6DRj+OjcFd2vq8MZiccY3sSdXgcbmuKsEJiwZ019jC4Ito78Dz5qiD",
-	"8irx5wxU1L/fM1DpHXEC0gcGihnIN+mFtk3vOirrfjelm+1UN3X3XtTp7mV4fzyb7kjePA63s89qw/N4",
-	"PLipT1xdx8u+irZnlH30a8qe8Jxfdn5Po39uC7TyGgqoiVyR59qWUtc2UHE1uuJb90C3eVska9jOtj8D",
-	"AAD//+yi6jgWDAAA",
+	"H4sIAAAAAAAC/9xWUW/aMBD+K9Ztj1ED3UuVt27SKiSkVVr3VPHgJgdxa2zPPtohxH+fzk4aIEChmjZp",
+	"TwSffffdd3efvYLSzp01aChAsQInvZwjoY//SIanUcVfykABTlINGRg5RyhaYwYefy6UxwoK8gvMIJQ1",
+	"ziWfwl9y7jRCcZkBLR2fUoZwhh7W63W7M4Yaq0ARgLcOPSmMq6racjPsu8lAq0DffIWet1YYSq8cKcuA",
+	"47KwU0E1Ct4nlInfD1Z6ht73xlml0ITz+PHR4xQK+JB3TOUN8PxOhqd4KvmR3stl/K+I8W5Ah5ERt97O",
+	"PIbQBQ7klZkBc9GxeM9ptz5aRJt5Tl7P24dHLIkjRiTv5i8VeZu8ceSrEjIEWypJWIkXRbWgWgXBoCB7",
+	"wzNversyjbe2NAznbc99fpkAMTyP2ib1TaT7uP3hKknIAb5aP++z/P8zuEMJLykztVEjkiP4brWqxJ1H",
+	"ra24vh1BBs/oQwI7vBhcDDisdWikU1DAp7iURVGJLOa6lQCbfrfz/eJREgrZpscFkGxj5hvrOJm43hjo",
+	"s62W7Ke0htBEl9I5rcp4LH8M7He1IVf9qr5yfzaZ54z7Zjse6kI+s6e7yIoypt7T4RgjOGtCSudyMDyL",
+	"jGOyF3k+BCnhqURYlCWGMF1ovUxNJGeB092ICxM2xMpHkDPcU/kbJCG1FmnXbuVvkK61Hje2nZQHZ6V8",
+	"kuSn3Hclv8/FFupzyKBWyY+PQaMf+8bgLpn+3BiMTrhGtqTq7HG5rirBCYsGdNfYwuCLaO/A0+aog/Iq",
+	"8acMVNS/fzNQ6R1xANI7BooZyFfphbZO7zoq6343pZvtUDd1917U6e5leL8/m25L3jwO15P3t+ExvnZu",
+	"5CPFXMSdJxRz8HeKmfCcXkx+JaN/bmlfeA0F1ESuyHNtS6lrG6i4GlzxXbqjxmwW6TSsJ+vfAQAA///l",
+	"ufOD7AsAAA==",
 }
 
 // GetSwagger returns the Swagger specification corresponding to the generated code

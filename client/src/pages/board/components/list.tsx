@@ -20,19 +20,19 @@ type ListProps = {
 
 export default function List(props: ListProps) {
   const [activeItem, setActiveItem] = createSignal(null);
+  const currentItems = () => props.list.tasks ?? [];
 
-  const taskIds = () => props.list?.tasks?.map((task) => task.id) ?? [];
+  const taskIds = () => currentItems().map((task) => task.id) ?? [];
   const sortedTasks = () =>
-    props.list.tasks?.sort((a, b) => a.taskOrder - b.taskOrder) ?? [];
+    [...currentItems()].sort((a, b) => a.taskOrder - b.taskOrder);
 
   const onDragStart = ({ draggable }: { draggable: Draggable }) => {
-    const task = props.list.tasks.find((task) => task.id === draggable.id);
+    const task = currentItems().find((task) => task.id === draggable.id);
     setActiveItem(task);
   };
 
   const getOrder = (taskId: number) => {
-    const task = props.list.tasks.find((task) => task.id === taskId);
-    return task.taskOrder;
+    return currentItems().find((task) => task.id === taskId).taskOrder;
   };
 
   const onDragEnd = ({
@@ -43,19 +43,18 @@ export default function List(props: ListProps) {
     droppable: Droppable;
   }) => {
     if (draggable && droppable) {
-      const currentItems = props.list.tasks;
       const currentOrder = getOrder(draggable.id as number);
       const newOrder = getOrder(droppable.id as number);
       if (currentOrder !== newOrder) {
-        const updatedItems = currentItems.map((task) => {
+        const updatedItems = currentItems().map((task) => {
           if (task.taskOrder === currentOrder) {
-            return { ...task, order: newOrder };
+            return { ...task, taskOrder: newOrder };
           }
           if (currentOrder > newOrder && task.taskOrder >= newOrder) {
-            return { ...task, order: task.taskOrder + 1 };
+            return { ...task, taskOrder: task.taskOrder + 1 };
           }
           if (currentOrder < newOrder && task.taskOrder <= newOrder) {
-            return { ...task, order: task.taskOrder - 1 };
+            return { ...task, taskOrder: task.taskOrder - 1 };
           }
           return task;
         });

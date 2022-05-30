@@ -143,6 +143,31 @@ export interface Task {
    */
   taskOrder: number;
 }
+/**
+ *
+ * @export
+ * @interface UpdateTaskForm
+ */
+export interface UpdateTaskForm {
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateTaskForm
+   */
+  title?: string;
+  /**
+   * Order of this task in the list
+   * @type {number}
+   * @memberof UpdateTaskForm
+   */
+  taskOrder?: number;
+  /**
+   * List id associated with this task
+   * @type {number}
+   * @memberof UpdateTaskForm
+   */
+  listId?: number;
+}
 
 /**
  * ApplicationApi - axios parameter creator
@@ -286,6 +311,62 @@ export const ApplicationApiAxiosParamCreator = function (
         options: localVarRequestOptions,
       };
     },
+    /**
+     * Update a task
+     * @param {number} taskId
+     * @param {UpdateTaskForm} updateTaskForm Task to update
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateTask: async (
+      taskId: number,
+      updateTaskForm: UpdateTaskForm,
+      options: any = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'taskId' is not null or undefined
+      assertParamExists("updateTask", "taskId", taskId);
+      // verify required parameter 'updateTaskForm' is not null or undefined
+      assertParamExists("updateTask", "updateTaskForm", updateTaskForm);
+      const localVarPath = `/task/{taskId}`.replace(
+        `{${"taskId"}}`,
+        encodeURIComponent(String(taskId))
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = {
+        method: "PATCH",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      localVarHeaderParameter["Content-Type"] = "application/json";
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        updateTaskForm,
+        localVarRequestOptions,
+        configuration
+      );
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
   };
 };
 
@@ -363,6 +444,32 @@ export const ApplicationApiFp = function (configuration?: Configuration) {
         configuration
       );
     },
+    /**
+     * Update a task
+     * @param {number} taskId
+     * @param {UpdateTaskForm} updateTaskForm Task to update
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async updateTask(
+      taskId: number,
+      updateTaskForm: UpdateTaskForm,
+      options?: any
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<Task>
+    > {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.updateTask(
+        taskId,
+        updateTaskForm,
+        options
+      );
+      return createRequestFunction(
+        localVarAxiosArgs,
+        globalAxios,
+        BASE_PATH,
+        configuration
+      );
+    },
   };
 };
 
@@ -412,6 +519,22 @@ export const ApplicationApiFactory = function (
         .getAllLists(options)
         .then((request) => request(axios, basePath));
     },
+    /**
+     * Update a task
+     * @param {number} taskId
+     * @param {UpdateTaskForm} updateTaskForm Task to update
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateTask(
+      taskId: number,
+      updateTaskForm: UpdateTaskForm,
+      options?: any
+    ): AxiosPromise<Task> {
+      return localVarFp
+        .updateTask(taskId, updateTaskForm, options)
+        .then((request) => request(axios, basePath));
+    },
   };
 };
 
@@ -457,6 +580,24 @@ export class ApplicationApi extends BaseAPI {
   public getAllLists(options?: any) {
     return ApplicationApiFp(this.configuration)
       .getAllLists(options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Update a task
+   * @param {number} taskId
+   * @param {UpdateTaskForm} updateTaskForm Task to update
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApplicationApi
+   */
+  public updateTask(
+    taskId: number,
+    updateTaskForm: UpdateTaskForm,
+    options?: any
+  ) {
+    return ApplicationApiFp(this.configuration)
+      .updateTask(taskId, updateTaskForm, options)
       .then((request) => request(this.axios, this.basePath));
   }
 }

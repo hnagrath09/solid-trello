@@ -103,10 +103,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                schema:
-                  $ref: "#/components/schemas/UpdateTaskForm"
+              $ref: "#/components/schemas/UpdateTaskForm"
       responses:
         "200":
           description: Task updated successfully

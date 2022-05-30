@@ -28,3 +28,22 @@ export async function createNewTask({
   const { data } = await apiService.createTask({ title, taskOrder, listId });
   return data;
 }
+
+export async function updateTask({
+  taskId,
+  title,
+  taskOrder,
+  listId,
+}: {
+  taskId: number;
+  title?: string;
+  taskOrder?: number;
+  listId?: number;
+}) {
+  const { data } = await apiService.updateTask(taskId, {
+    title,
+    taskOrder,
+    listId,
+  });
+  return data;
+}
