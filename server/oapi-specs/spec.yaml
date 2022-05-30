@@ -111,6 +111,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
+  /tasks/reorder:
+    post:
+      operationId: ReorderTasks
+      tags:
+        - "application"
+      description: Reorder tasks
+      requestBody:
+        description: Tasks to reorder
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/ReorderTasksForm"
+      responses:
+        "200":
+          description: Tasks reordered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
 components:
   parameters:
     taskId:
@@ -178,3 +200,16 @@ components:
           type: integer
           example: 1
           description: List id associated with this task
+    ReorderTasksForm:
+      type: object
+      required:
+        - taskId
+        - taskOrder
+      properties:
+        taskId:
+          type: integer
+          example: 1
+        taskOrder:
+          type: integer
+          example: 1
+          description: Order of this task in the list

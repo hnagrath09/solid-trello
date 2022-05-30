@@ -31,6 +31,14 @@ type List struct {
 	Title     string `json:"title"`
 }
 
+// ReorderTasksForm defines model for ReorderTasksForm.
+type ReorderTasksForm struct {
+	TaskId int `json:"taskId"`
+
+	// Order of this task in the list
+	TaskOrder int `json:"taskOrder"`
+}
+
 // Task defines model for Task.
 type Task struct {
 	Id int `json:"id"`
@@ -73,6 +81,9 @@ type CreateTaskJSONBody struct {
 // UpdateTaskJSONBody defines parameters for UpdateTask.
 type UpdateTaskJSONBody UpdateTaskForm
 
+// ReorderTasksJSONBody defines parameters for ReorderTasks.
+type ReorderTasksJSONBody []ReorderTasksForm
+
 // CreateListJSONRequestBody defines body for CreateList for application/json ContentType.
 type CreateListJSONRequestBody CreateListJSONBody
 
@@ -81,6 +92,9 @@ type CreateTaskJSONRequestBody CreateTaskJSONBody
 
 // UpdateTaskJSONRequestBody defines body for UpdateTask for application/json ContentType.
 type UpdateTaskJSONRequestBody UpdateTaskJSONBody
+
+// ReorderTasksJSONRequestBody defines body for ReorderTasks for application/json ContentType.
+type ReorderTasksJSONRequestBody ReorderTasksJSONBody
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -172,6 +186,11 @@ type ClientInterface interface {
 	UpdateTaskWithBody(ctx context.Context, taskId TaskId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateTask(ctx context.Context, taskId TaskId, body UpdateTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ReorderTasks request  with any body
+	ReorderTasksWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ReorderTasks(ctx context.Context, body ReorderTasksJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) CreateListWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -242,6 +261,28 @@ func (c *Client) UpdateTaskWithBody(ctx context.Context, taskId TaskId, contentT
 
 func (c *Client) UpdateTask(ctx context.Context, taskId TaskId, body UpdateTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateTaskRequest(c.Server, taskId, body)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ReorderTasksWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewReorderTasksRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ReorderTasks(ctx context.Context, body ReorderTasksJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewReorderTasksRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -405,6 +446,46 @@ func NewUpdateTaskRequestWithBody(server string, taskId TaskId, contentType stri
 	return req, nil
 }
 
+// NewReorderTasksRequest calls the generic ReorderTasks builder with application/json body
+func NewReorderTasksRequest(server string, body ReorderTasksJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewReorderTasksRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewReorderTasksRequestWithBody generates requests for ReorderTasks with any type of body
+func NewReorderTasksRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	queryUrl, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	basePath := fmt.Sprintf("/tasks/reorder")
+	if basePath[0] == '/' {
+		basePath = basePath[1:]
+	}
+
+	queryUrl, err = queryUrl.Parse(basePath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryUrl.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	req = req.WithContext(ctx)
 	for _, r := range c.RequestEditors {
@@ -466,6 +547,11 @@ type ClientWithResponsesInterface interface {
 	UpdateTaskWithBodyWithResponse(ctx context.Context, taskId TaskId, contentType string, body io.Reader) (*UpdateTaskResponse, error)
 
 	UpdateTaskWithResponse(ctx context.Context, taskId TaskId, body UpdateTaskJSONRequestBody) (*UpdateTaskResponse, error)
+
+	// ReorderTasks request  with any body
+	ReorderTasksWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*ReorderTasksResponse, error)
+
+	ReorderTasksWithResponse(ctx context.Context, body ReorderTasksJSONRequestBody) (*ReorderTasksResponse, error)
 }
 
 type CreateListResponse struct {
@@ -556,6 +642,28 @@ func (r UpdateTaskResponse) StatusCode() int {
 	return 0
 }
 
+type ReorderTasksResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Task
+}
+
+// Status returns HTTPResponse.Status
+func (r ReorderTasksResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ReorderTasksResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // CreateListWithBodyWithResponse request with arbitrary body returning *CreateListResponse
 func (c *ClientWithResponses) CreateListWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*CreateListResponse, error) {
 	rsp, err := c.CreateListWithBody(ctx, contentType, body)
@@ -614,6 +722,23 @@ func (c *ClientWithResponses) UpdateTaskWithResponse(ctx context.Context, taskId
 		return nil, err
 	}
 	return ParseUpdateTaskResponse(rsp)
+}
+
+// ReorderTasksWithBodyWithResponse request with arbitrary body returning *ReorderTasksResponse
+func (c *ClientWithResponses) ReorderTasksWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*ReorderTasksResponse, error) {
+	rsp, err := c.ReorderTasksWithBody(ctx, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	return ParseReorderTasksResponse(rsp)
+}
+
+func (c *ClientWithResponses) ReorderTasksWithResponse(ctx context.Context, body ReorderTasksJSONRequestBody) (*ReorderTasksResponse, error) {
+	rsp, err := c.ReorderTasks(ctx, body)
+	if err != nil {
+		return nil, err
+	}
+	return ParseReorderTasksResponse(rsp)
 }
 
 // ParseCreateListResponse parses an HTTP response from a CreateListWithResponse call
@@ -720,6 +845,32 @@ func ParseUpdateTaskResponse(rsp *http.Response) (*UpdateTaskResponse, error) {
 	return response, nil
 }
 
+// ParseReorderTasksResponse parses an HTTP response from a ReorderTasksWithResponse call
+func ParseReorderTasksResponse(rsp *http.Response) (*ReorderTasksResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ReorderTasksResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Task
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
@@ -734,6 +885,9 @@ type ServerInterface interface {
 
 	// (PATCH /task/{taskId})
 	UpdateTask(ctx echo.Context, taskId TaskId) error
+
+	// (POST /tasks/reorder)
+	ReorderTasks(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -784,6 +938,15 @@ func (w *ServerInterfaceWrapper) UpdateTask(ctx echo.Context) error {
 	return err
 }
 
+// ReorderTasks converts echo context to params.
+func (w *ServerInterfaceWrapper) ReorderTasks(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.ReorderTasks(ctx)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -816,25 +979,27 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/lists", wrapper.GetAllLists)
 	router.POST(baseURL+"/task", wrapper.CreateTask)
 	router.PATCH(baseURL+"/task/:taskId", wrapper.UpdateTask)
+	router.POST(baseURL+"/tasks/reorder", wrapper.ReorderTasks)
 
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9xWUW/aMBD+K9Ztj1ED3UuVt27SKiSkVVr3VPHgJgdxa2zPPtohxH+fzk4aIEChmjZp",
-	"TwSffffdd3efvYLSzp01aChAsQInvZwjoY//SIanUcVfykABTlINGRg5RyhaYwYefy6UxwoK8gvMIJQ1",
-	"ziWfwl9y7jRCcZkBLR2fUoZwhh7W63W7M4Yaq0ARgLcOPSmMq6racjPsu8lAq0DffIWet1YYSq8cKcuA",
-	"47KwU0E1Ct4nlInfD1Z6ht73xlml0ITz+PHR4xQK+JB3TOUN8PxOhqd4KvmR3stl/K+I8W5Ah5ERt97O",
-	"PIbQBQ7klZkBc9GxeM9ptz5aRJt5Tl7P24dHLIkjRiTv5i8VeZu8ceSrEjIEWypJWIkXRbWgWgXBoCB7",
-	"wzNversyjbe2NAznbc99fpkAMTyP2ib1TaT7uP3hKknIAb5aP++z/P8zuEMJLykztVEjkiP4brWqxJ1H",
-	"ra24vh1BBs/oQwI7vBhcDDisdWikU1DAp7iURVGJLOa6lQCbfrfz/eJREgrZpscFkGxj5hvrOJm43hjo",
-	"s62W7Ke0htBEl9I5rcp4LH8M7He1IVf9qr5yfzaZ54z7Zjse6kI+s6e7yIoypt7T4RgjOGtCSudyMDyL",
-	"jGOyF3k+BCnhqURYlCWGMF1ovUxNJGeB092ICxM2xMpHkDPcU/kbJCG1FmnXbuVvkK61Hje2nZQHZ6V8",
-	"kuSn3Hclv8/FFupzyKBWyY+PQaMf+8bgLpn+3BiMTrhGtqTq7HG5rirBCYsGdNfYwuCLaO/A0+aog/Iq",
-	"8acMVNS/fzNQ6R1xANI7BooZyFfphbZO7zoq6343pZvtUDd1917U6e5leL8/m25L3jwO15P3t+ExvnZu",
-	"5CPFXMSdJxRz8HeKmfCcXkx+JaN/bmlfeA0F1ESuyHNtS6lrG6i4GlzxXbqjxmwW6TSsJ+vfAQAA///l",
-	"ufOD7AsAAA==",
+	"H4sIAAAAAAAC/9xXW2/aMBT+K9bZHqMGupcqb92kVZWQVm3dU8WDmxzArYk9+9AOIf77dOyEAAmUdFft",
+	"qcGX4+/7zrUryM3cmhJL8pCtwEon50jowi+S/vG64C9VQgZW0gwSKOUcIas3E3D4baEcFpCRW2ACPp/h",
+	"XPIt/C7nViNk5wnQ0vItVRJO0cF6va5PhqdGylMA4IxFRwrDqip2zAzbZhLQytMnV6DjowX63ClLyjDg",
+	"sCzMRNAMBZ8Tqgzf90Y6ht62xqzi04Tz8PHW4QQyeJM2SqUV8PRW+sdwK9qRzsll+K2I8W5Bh+tS3Dgz",
+	"deh987Anp8opsBaNindMu7ZRI9rmOd7cN/cPmBO/+BkN7zEg/9G4eVvLxpnH9eRzL+upvOCDtaAMDpKj",
+	"lvc4bsKnea+LV1D41XER+e6SGIU4KIT03uRKEhbiWdGs4fQCj9+nUGfcsABi2C9kKuovafvVFpKQH+iO",
+	"mP9fwT1JeEmVExPSJRqCL0arQtw61NqIy5trSOAJnY9gh2eDswE/ayyW0irI4F1YSkKxDCqmui5tJv7d",
+	"5fvBoSQUsqbHDpC8x8pXu6O4xf5GT+9NsWQ7uSkJy2BSWqtVHq6lD57trrbKcNurG+17i9mnjG2H46Eo",
+	"5Dsd0UVG5IF6q7+EN7w1pY90zgfDXmIcK+dB50OQIp5C+EWeo/eThdbLGERy6pnu1rsw5o3g+QByih2e",
+	"v0ISUmsRT+17/grpUutRtbdHedCL8kmtLHLfb2VtLXZQ9xGD6kp+PA2q+tGVBrdx69elQe922DtdLotC",
+	"MGFRgW4CW5T4LOrefloeNVA2Jf6UhAr17+8kVJyPDkB6RUKxAukqjg7rOK9SPmtHU+xsh6Kp6XuhTjcT",
+	"7103m+ZIWk0t6/Hrw/CYXnsd+YgzF+HkCc4c/BlnRjy9nelTFwfXw5Whmmw3ubLry+259ydqw0klsjVj",
+	"n1Auw2F2WM3zX/GYrxH1cBr/y4buqc6VhdOQwYzIZmmqTS71zHjKLgYXPADttVDeFvE2rMfrHwEAAP//",
+	"01Ike3kOAAA=",
 }
 
 // GetSwagger returns the Swagger specification corresponding to the generated code
