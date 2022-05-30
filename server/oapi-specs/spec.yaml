@@ -89,8 +89,40 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
-
+  /task/{taskId}:
+    patch:
+      operationId: UpdateTask
+      tags:
+        - "application"
+      description: Update a task
+      parameters:
+        - $ref: "#/components/parameters/taskId"
+      requestBody:
+        description: Task to update
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                schema:
+                  $ref: "#/components/schemas/UpdateTaskForm"
+      responses:
+        "200":
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
 components:
+  parameters:
+    taskId:
+      in: path
+      name: taskId
+      required: true
+      schema:
+        type: integer
+        example: 2
   schemas:
     List:
       type: object
@@ -135,3 +167,17 @@ components:
           type: integer
           example: 1
           description: Order of this task in the list
+    UpdateTaskForm:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Task 1
+        taskOrder:
+          type: integer
+          example: 1
+          description: Order of this task in the list
+        listId:
+          type: integer
+          example: 1
+          description: List id associated with this task
