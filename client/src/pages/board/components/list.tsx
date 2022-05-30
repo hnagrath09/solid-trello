@@ -9,18 +9,25 @@ import {
 } from "@thisbeyond/solid-dnd";
 import type { Draggable, Droppable } from "@thisbeyond/solid-dnd";
 
+import { List as TList, ReorderTasksForm } from "api";
+import { useMutation, useQueryClient } from "utils/solid-query";
+
 import Task from "./task";
-import { List as TList } from "api";
 import AddTask from "./add-task";
+import { reorderTasks } from "../queries";
 
 type ListProps = {
   list: TList;
-  onUpdate: (newList: TList) => void;
 };
 
 export default function List(props: ListProps) {
-  const [activeItem, setActiveItem] = createSignal(null);
   const currentItems = () => props.list.tasks ?? [];
+  const [activeItem, setActiveItem] = createSignal(null);
+
+  const queryClient = useQueryClient();
+  const { mutate } = useMutation(reorderTasks, {
+    onSuccess: () => queryClient.invalidateQueries("lists"),
+  });
 
   const taskIds = () => currentItems().map((task) => task.id) ?? [];
   const sortedTasks = () =>
@@ -46,20 +53,23 @@ export default function List(props: ListProps) {
       const currentOrder = getOrder(draggable.id as number);
       const newOrder = getOrder(droppable.id as number);
       if (currentOrder !== newOrder) {
-        const updatedItems = currentItems().map((task) => {
+        const updatedItems: ReorderTasksForm[] = [];
+        currentItems().forEach((task) => {
           if (task.taskOrder === currentOrder) {
-            return { ...task, taskOrder: newOrder };
+            updatedItems.push({ taskId: task.id, taskOrder: newOrder });
+          } else if (currentOrder > newOrder && task.taskOrder >= newOrder) {
+            updatedItems.push({
+              taskId: task.id,
+              taskOrder: task.taskOrder + 1,
+            });
+          } else if (currentOrder < newOrder && task.taskOrder <= newOrder) {
+            updatedItems.push({
+              taskId: task.id,
+              taskOrder: task.taskOrder - 1,
+            });
           }
-          if (currentOrder > newOrder && task.taskOrder >= newOrder) {
-            return { ...task, taskOrder: task.taskOrder + 1 };
-          }
-          if (currentOrder < newOrder && task.taskOrder <= newOrder) {
-            return { ...task, taskOrder: task.taskOrder - 1 };
-          }
-          return task;
         });
-        const updatedList = { ...props.list, tasks: updatedItems };
-        props.onUpdate(updatedList);
+        mutate(updatedItems);
       }
     }
     setActiveItem(null);

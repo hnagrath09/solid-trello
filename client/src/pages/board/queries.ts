@@ -1,4 +1,5 @@
 import apiService from "utils/api-service";
+import { ReorderTasksForm } from "api";
 
 export async function fetchLists() {
   const { data } = await apiService.getAllLists();
@@ -45,5 +46,10 @@ export async function updateTask({
     taskOrder,
     listId,
   });
+  return data;
+}
+
+export async function reorderTasks(reqBody: ReorderTasksForm[]) {
+  const { data } = await apiService.reorderTasks(reqBody);
   return data;
 }

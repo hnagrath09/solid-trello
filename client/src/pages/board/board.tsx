@@ -1,13 +1,11 @@
-import { createEffect, createResource, Index } from "solid-js";
-import { Box, HStack } from "@hope-ui/solid";
-
+import { Index } from "solid-js";
 import type { Accessor } from "solid-js";
+import { Box, HStack } from "@hope-ui/solid";
+import { useMutation, useQuery, useQueryClient } from "utils/solid-query";
 
 import List from "./components/list";
 import AddList from "./components/add-list";
 import { createNewList, fetchLists } from "./queries";
-import { List as TList } from "api";
-import { useMutation, useQuery, useQueryClient } from "utils/solid-query";
 
 export default function Board() {
   const state = useQuery("lists", fetchLists);
@@ -26,12 +24,6 @@ export default function Board() {
     }
   };
 
-  const reorderList = (updatedList: TList) => {
-    // mutate((lists) =>
-    //   lists.map((list) => (list.id === updatedList.id ? updatedList : list))
-    // );
-  };
-
   return (
     <Box
       p="$6"
@@ -42,9 +34,7 @@ export default function Board() {
       overflow="auto"
     >
       <HStack spacing="$4" alignItems="start" h="100%">
-        <Index each={lists()}>
-          {(list) => <List list={list()} onUpdate={reorderList} />}
-        </Index>
+        <Index each={lists()}>{(list) => <List list={list()} />}</Index>
         <AddList onSubmit={handleSubmit} />
       </HStack>
     </Box>
