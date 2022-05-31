@@ -27,15 +27,15 @@ func (s *Server) GetAllLists(ctx echo.Context) error {
 		var Tasks []spec.Task
 		for _, task := range list.R.Tasks {
 			Tasks = append(Tasks, spec.Task{
-				Id:        int(task.ID),
+				Id:        task.ID,
 				Title:     task.Title,
 				TaskOrder: task.TaskOrder,
-				ListId:    int(task.ListID),
+				ListId:    task.ListID.String,
 			})
 		}
 
 		respBody = append(respBody, spec.List{
-			Id:        int(list.ID),
+			Id:        list.ID,
 			Title:     list.Title,
 			ListOrder: list.ListOrder,
 			Tasks:     Tasks,

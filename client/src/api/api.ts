@@ -60,10 +60,10 @@ export interface InlineObject1 {
     taskOrder: number;
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof InlineObject1
      */
-    listId: number;
+    listId: string;
 }
 /**
  * 
@@ -73,10 +73,10 @@ export interface InlineObject1 {
 export interface List {
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof List
      */
-    id: number;
+    id: string;
     /**
      * 
      * @type {string}
@@ -104,10 +104,10 @@ export interface List {
 export interface ReorderTasksForm {
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof ReorderTasksForm
      */
-    taskId: number;
+    taskId: string;
     /**
      * Order of this task in the list
      * @type {number}
@@ -123,10 +123,10 @@ export interface ReorderTasksForm {
 export interface Task {
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof Task
      */
-    id: number;
+    id: string;
     /**
      * 
      * @type {string}
@@ -135,10 +135,10 @@ export interface Task {
     title: string;
     /**
      * List id associated with this task
-     * @type {number}
+     * @type {string}
      * @memberof Task
      */
-    listId: number;
+    listId: string;
     /**
      * Order of this task in the list
      * @type {number}
@@ -166,10 +166,10 @@ export interface UpdateTaskForm {
     taskOrder?: number;
     /**
      * List id associated with this task
-     * @type {number}
+     * @type {string}
      * @memberof UpdateTaskForm
      */
-    listId?: number;
+    listId?: string;
 }
 
 /**
@@ -314,12 +314,12 @@ export const ApplicationApiAxiosParamCreator = function (configuration?: Configu
         },
         /**
          * Update a task
-         * @param {number} taskId 
+         * @param {string} taskId 
          * @param {UpdateTaskForm} updateTaskForm Task to update
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTask: async (taskId: number, updateTaskForm: UpdateTaskForm, options: any = {}): Promise<RequestArgs> => {
+        updateTask: async (taskId: string, updateTaskForm: UpdateTaskForm, options: any = {}): Promise<RequestArgs> => {
             // verify required parameter 'taskId' is not null or undefined
             assertParamExists('updateTask', 'taskId', taskId)
             // verify required parameter 'updateTaskForm' is not null or undefined
@@ -402,12 +402,12 @@ export const ApplicationApiFp = function(configuration?: Configuration) {
         },
         /**
          * Update a task
-         * @param {number} taskId 
+         * @param {string} taskId 
          * @param {UpdateTaskForm} updateTaskForm Task to update
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateTask(taskId: number, updateTaskForm: UpdateTaskForm, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Task>> {
+        async updateTask(taskId: string, updateTaskForm: UpdateTaskForm, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Task>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.updateTask(taskId, updateTaskForm, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -458,12 +458,12 @@ export const ApplicationApiFactory = function (configuration?: Configuration, ba
         },
         /**
          * Update a task
-         * @param {number} taskId 
+         * @param {string} taskId 
          * @param {UpdateTaskForm} updateTaskForm Task to update
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTask(taskId: number, updateTaskForm: UpdateTaskForm, options?: any): AxiosPromise<Task> {
+        updateTask(taskId: string, updateTaskForm: UpdateTaskForm, options?: any): AxiosPromise<Task> {
             return localVarFp.updateTask(taskId, updateTaskForm, options).then((request) => request(axios, basePath));
         },
     };
@@ -521,13 +521,13 @@ export class ApplicationApi extends BaseAPI {
 
     /**
      * Update a task
-     * @param {number} taskId 
+     * @param {string} taskId 
      * @param {UpdateTaskForm} updateTaskForm Task to update
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApplicationApi
      */
-    public updateTask(taskId: number, updateTaskForm: UpdateTaskForm, options?: any) {
+    public updateTask(taskId: string, updateTaskForm: UpdateTaskForm, options?: any) {
         return ApplicationApiFp(this.configuration).updateTask(taskId, updateTaskForm, options).then((request) => request(this.axios, this.basePath));
     }
 }

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -23,58 +24,82 @@ import (
 
 // Task is an object representing the database table.
 type Task struct {
-	ID        int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Title     string    `boil:"title" json:"title" toml:"title" yaml:"title"`
-	TaskOrder int       `boil:"task_order" json:"taskOrder" toml:"taskOrder" yaml:"taskOrder"`
-	CreatedAt time.Time `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
-	ListID    int64     `boil:"list_id" json:"listID" toml:"listID" yaml:"listID"`
+	Title     string      `boil:"title" json:"title" toml:"title" yaml:"title"`
+	TaskOrder int         `boil:"task_order" json:"taskOrder" toml:"taskOrder" yaml:"taskOrder"`
+	CreatedAt time.Time   `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
+	ID        string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	ListID    null.String `boil:"list_id" json:"listID,omitempty" toml:"listID" yaml:"listID,omitempty"`
 
 	R *taskR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L taskL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var TaskColumns = struct {
-	ID        string
 	Title     string
 	TaskOrder string
 	CreatedAt string
+	ID        string
 	ListID    string
 }{
-	ID:        "id",
 	Title:     "title",
 	TaskOrder: "task_order",
 	CreatedAt: "created_at",
+	ID:        "id",
 	ListID:    "list_id",
 }
 
 var TaskTableColumns = struct {
-	ID        string
 	Title     string
 	TaskOrder string
 	CreatedAt string
+	ID        string
 	ListID    string
 }{
-	ID:        "tasks.id",
 	Title:     "tasks.title",
 	TaskOrder: "tasks.task_order",
 	CreatedAt: "tasks.created_at",
+	ID:        "tasks.id",
 	ListID:    "tasks.list_id",
 }
 
 // Generated where
 
+type whereHelpernull_String struct{ field string }
+
+func (w whereHelpernull_String) EQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_String) NEQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_String) LT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_String) LTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_String) GT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+
 var TaskWhere = struct {
-	ID        whereHelperint64
 	Title     whereHelperstring
 	TaskOrder whereHelperint
 	CreatedAt whereHelpertime_Time
-	ListID    whereHelperint64
+	ID        whereHelperstring
+	ListID    whereHelpernull_String
 }{
-	ID:        whereHelperint64{field: "\"tasks\".\"id\""},
 	Title:     whereHelperstring{field: "\"tasks\".\"title\""},
 	TaskOrder: whereHelperint{field: "\"tasks\".\"task_order\""},
 	CreatedAt: whereHelpertime_Time{field: "\"tasks\".\"created_at\""},
-	ListID:    whereHelperint64{field: "\"tasks\".\"list_id\""},
+	ID:        whereHelperstring{field: "\"tasks\".\"id\""},
+	ListID:    whereHelpernull_String{field: "\"tasks\".\"list_id\""},
 }
 
 // TaskRels is where relationship names are stored.
@@ -98,9 +123,9 @@ func (*taskR) NewStruct() *taskR {
 type taskL struct{}
 
 var (
-	taskAllColumns            = []string{"id", "title", "task_order", "created_at", "list_id"}
-	taskColumnsWithoutDefault = []string{"title", "task_order", "list_id"}
-	taskColumnsWithDefault    = []string{"id", "created_at"}
+	taskAllColumns            = []string{"title", "task_order", "created_at", "id", "list_id"}
+	taskColumnsWithoutDefault = []string{"title", "task_order"}
+	taskColumnsWithDefault    = []string{"created_at", "id", "list_id"}
 	taskPrimaryKeyColumns     = []string{"id"}
 	taskGeneratedColumns      = []string{}
 )
@@ -411,7 +436,9 @@ func (taskL) LoadList(ctx context.Context, e boil.ContextExecutor, singular bool
 		if object.R == nil {
 			object.R = &taskR{}
 		}
-		args = append(args, object.ListID)
+		if !queries.IsNil(object.ListID) {
+			args = append(args, object.ListID)
+		}
 
 	} else {
 	Outer:
@@ -421,12 +448,14 @@ func (taskL) LoadList(ctx context.Context, e boil.ContextExecutor, singular bool
 			}
 
 			for _, a := range args {
-				if a == obj.ListID {
+				if queries.Equal(a, obj.ListID) {
 					continue Outer
 				}
 			}
 
-			args = append(args, obj.ListID)
+			if !queries.IsNil(obj.ListID) {
+				args = append(args, obj.ListID)
+			}
 
 		}
 	}
@@ -484,7 +513,7 @@ func (taskL) LoadList(ctx context.Context, e boil.ContextExecutor, singular bool
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if local.ListID == foreign.ID {
+			if queries.Equal(local.ListID, foreign.ID) {
 				local.R.List = foreign
 				if foreign.R == nil {
 					foreign.R = &listR{}
@@ -525,7 +554,7 @@ func (o *Task) SetList(ctx context.Context, exec boil.ContextExecutor, insert bo
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	o.ListID = related.ID
+	queries.Assign(&o.ListID, related.ID)
 	if o.R == nil {
 		o.R = &taskR{
 			List: related,
@@ -545,6 +574,39 @@ func (o *Task) SetList(ctx context.Context, exec boil.ContextExecutor, insert bo
 	return nil
 }
 
+// RemoveList relationship.
+// Sets o.R.List to nil.
+// Removes o from all passed in related items' relationships struct.
+func (o *Task) RemoveList(ctx context.Context, exec boil.ContextExecutor, related *List) error {
+	var err error
+
+	queries.SetScanner(&o.ListID, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("list_id")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	if o.R != nil {
+		o.R.List = nil
+	}
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	for i, ri := range related.R.Tasks {
+		if queries.Equal(o.ListID, ri.ListID) {
+			continue
+		}
+
+		ln := len(related.R.Tasks)
+		if ln > 1 && i < ln-1 {
+			related.R.Tasks[i] = related.R.Tasks[ln-1]
+		}
+		related.R.Tasks = related.R.Tasks[:ln-1]
+		break
+	}
+	return nil
+}
+
 // Tasks retrieves all the records using an executor.
 func Tasks(mods ...qm.QueryMod) taskQuery {
 	mods = append(mods, qm.From("\"tasks\""))
@@ -558,7 +620,7 @@ func Tasks(mods ...qm.QueryMod) taskQuery {
 
 // FindTask retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindTask(ctx context.Context, exec boil.ContextExecutor, iD int64, selectCols ...string) (*Task, error) {
+func FindTask(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*Task, error) {
 	taskObj := &Task{}
 
 	sel := "*"
@@ -1071,7 +1133,7 @@ func (o *TaskSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) er
 }
 
 // TaskExists checks if the Task row exists.
-func TaskExists(ctx context.Context, exec boil.ContextExecutor, iD int64) (bool, error) {
+func TaskExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
 	sql := "select exists(select 1 from \"tasks\" where \"id\"=$1 limit 1)"
 

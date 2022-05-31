@@ -1,0 +1,3 @@
+ALTER TABLE lists DROP COLUMN new_id;
+ALTER TABLE tasks DROP COLUMN new_id;
+ALTER TABLE tasks DROP COLUMN new_list_id;

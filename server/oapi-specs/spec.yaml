@@ -79,7 +79,7 @@ paths:
                   type: integer
                   example: 1
                 listId:
-                  type: integer
+                  type: string
                   example: 1
 
       responses:
@@ -140,7 +140,7 @@ components:
       name: taskId
       required: true
       schema:
-        type: integer
+        type: string
         example: 2
   schemas:
     List:
@@ -152,7 +152,7 @@ components:
         - listOrder
       properties:
         id:
-          type: integer
+          type: string
           example: 1
         title:
           type: string
@@ -173,13 +173,13 @@ components:
         - taskOrder
       properties:
         id:
-          type: integer
+          type: string
           example: 1
         title:
           type: string
           example: Task 1
         listId:
-          type: integer
+          type: string
           example: 1
           description: List id associated with this task
         taskOrder:
@@ -197,7 +197,7 @@ components:
           example: 1
           description: Order of this task in the list
         listId:
-          type: integer
+          type: string
           example: 1
           description: List id associated with this task
     ReorderTasksForm:
@@ -207,7 +207,7 @@ components:
         - taskOrder
       properties:
         taskId:
-          type: integer
+          type: string
           example: 1
         taskOrder:
           type: integer

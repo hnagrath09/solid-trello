@@ -23,7 +23,7 @@ import (
 
 // List defines model for List.
 type List struct {
-	Id int `json:"id"`
+	Id string `json:"id"`
 
 	// Order of the list in the board
 	ListOrder int    `json:"listOrder"`
@@ -33,7 +33,7 @@ type List struct {
 
 // ReorderTasksForm defines model for ReorderTasksForm.
 type ReorderTasksForm struct {
-	TaskId int `json:"taskId"`
+	TaskId string `json:"taskId"`
 
 	// Order of this task in the list
 	TaskOrder int `json:"taskOrder"`
@@ -41,10 +41,10 @@ type ReorderTasksForm struct {
 
 // Task defines model for Task.
 type Task struct {
-	Id int `json:"id"`
+	Id string `json:"id"`
 
 	// List id associated with this task
-	ListId int `json:"listId"`
+	ListId string `json:"listId"`
 
 	// Order of this task in the list
 	TaskOrder int    `json:"taskOrder"`
@@ -55,7 +55,7 @@ type Task struct {
 type UpdateTaskForm struct {
 
 	// List id associated with this task
-	ListId *int `json:"listId,omitempty"`
+	ListId *string `json:"listId,omitempty"`
 
 	// Order of this task in the list
 	TaskOrder *int    `json:"taskOrder,omitempty"`
@@ -63,7 +63,7 @@ type UpdateTaskForm struct {
 }
 
 // TaskId defines model for taskId.
-type TaskId int
+type TaskId string
 
 // CreateListJSONBody defines parameters for CreateList.
 type CreateListJSONBody struct {
@@ -73,7 +73,7 @@ type CreateListJSONBody struct {
 
 // CreateTaskJSONBody defines parameters for CreateTask.
 type CreateTaskJSONBody struct {
-	ListId    int    `json:"listId"`
+	ListId    string `json:"listId"`
 	TaskOrder int    `json:"taskOrder"`
 	Title     string `json:"title"`
 }
@@ -988,18 +988,18 @@ var swaggerSpec = []string{
 
 	"H4sIAAAAAAAC/9xXW2/aMBT+K9bZHqMGupcqb92kVZWQVm3dU8WDmxzArYk9+9AOIf77dOyEAAmUdFft",
 	"qcGX4+/7zrUryM3cmhJL8pCtwEon50jowi+S/vG64C9VQgZW0gwSKOUcIas3E3D4baEcFpCRW2ACPp/h",
-	"XPIt/C7nViNk5wnQ0vItVRJO0cF6va5PhqdGylMA4IxFRwrDqip2zAzbZhLQytMnV6DjowX63ClLyjDg",
-	"sCzMRNAMBZ8Tqgzf90Y6ht62xqzi04Tz8PHW4QQyeJM2SqUV8PRW+sdwK9qRzsll+K2I8W5Bh+tS3Dgz",
-	"deh987Anp8opsBaNindMu7ZRI9rmOd7cN/cPmBO/+BkN7zEg/9G4eVvLxpnH9eRzL+upvOCDtaAMDpKj",
-	"lvc4bsKnea+LV1D41XER+e6SGIU4KIT03uRKEhbiWdGs4fQCj9+nUGfcsABi2C9kKuovafvVFpKQH+iO",
-	"mP9fwT1JeEmVExPSJRqCL0arQtw61NqIy5trSOAJnY9gh2eDswE/ayyW0irI4F1YSkKxDCqmui5tJv7d",
-	"5fvBoSQUsqbHDpC8x8pXu6O4xf5GT+9NsWQ7uSkJy2BSWqtVHq6lD57trrbKcNurG+17i9mnjG2H46Eo",
-	"5Dsd0UVG5IF6q7+EN7w1pY90zgfDXmIcK+dB50OQIp5C+EWeo/eThdbLGERy6pnu1rsw5o3g+QByih2e",
-	"v0ISUmsRT+17/grpUutRtbdHedCL8kmtLHLfb2VtLXZQ9xGD6kp+PA2q+tGVBrdx69elQe922DtdLotC",
-	"MGFRgW4CW5T4LOrefloeNVA2Jf6UhAr17+8kVJyPDkB6RUKxAukqjg7rOK9SPmtHU+xsh6Kp6XuhTjcT",
-	"7103m+ZIWk0t6/Hrw/CYXnsd+YgzF+HkCc4c/BlnRjy9nelTFwfXw5Whmmw3ubLry+259ydqw0klsjVj",
-	"n1Auw2F2WM3zX/GYrxH1cBr/y4buqc6VhdOQwYzIZmmqTS71zHjKLgYXPADttVDeFvE2rMfrHwEAAP//",
-	"01Ike3kOAAA=",
+	"XPIt/C7nViNk5wnQ0vItT06VU1iv1/XB8NJIeQrvO2PRkcKwqoodK8OWlQS08vTJFej4ZIE+d8qSMgw3",
+	"LAszETRDweeEKsP3vZGOgVfGVEk4RcfWmFN8mXAePt46nEAGb9JGp7TCnd5K/xhuRTvSObkMvxUx3C3k",
+	"cF2KG2emDr2HthbbGt4x69pGjWib53hz39w/YE784mc0vMeA/Efj5m0pG1celZOPvSyn8oIP1noyNki6",
+	"DG+k3aO4iZ3mvS5aQeDXRkVku8thFKKgENJ7kytJWIhnRbOGUjeN369PZ9AwfTHsFy8V85eU/WoLScgP",
+	"dIfLfy/gniK8pMqJCakSDcEXo1Uhbh1qbcTlzTUk8ITOR7DDs8HZgJ81FktpFWTwLiwloUwGEVNdVzUT",
+	"/+7y/eBQEgpZ02P9Je+x8NXuKG6xu9HTe1Ms2U5uSsIymJTWapWHa+mDZ7urrQLcdupG+95i9ilh29F4",
+	"KAj5TkdwkRF5oN7qLOENb03pI53zwbCXGMdKedD5EKSIpxB+kefo/WSh9TIGkZx6prv1Lox5I3g+gJxi",
+	"h+evkITUWsRT+56/QrrUelTt7VEe9KJ8UhuL3PfbWFuLHdR9xKC6jB9Pg6p8dKXBbdz6dWnQtxX2zpbL",
+	"ohDMV1SYm7gWJT6Luq2flkYNlE2BPyWfQvn7O/kUR6MDkF6RT6xAuopjwzoOqpTP2sEU+9qhYGq6XijT",
+	"zah7182mOZJWE8t6/PooPKbXXj8+4sxFOHmCMwd/xpkRT29n+tTFmfVwYaiG2k2u7Ppye+T9idJwUoVs",
+	"jdcnVMtwmB1W8/xXPOZrRD2cxv+soXuqc2XhNGQwI7JZmmqTSz0znrKLwQXPP3sdlLdFvA3r8fpHAAAA",
+	"//+uzkmFcg4AAA==",
 }
 
 // GetSwagger returns the Swagger specification corresponding to the generated code

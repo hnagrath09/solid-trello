@@ -15,7 +15,7 @@ type Wrappers struct {
 }
 
 func (w *Wrappers) FindAndUpdateTask(taskId spec.TaskId, newTask spec.UpdateTaskForm) (*models.Task, error) {
-	Task, err := models.FindTask(w.Ctx, w.Db, int64(taskId))
+	Task, err := models.FindTask(w.Ctx, w.Db, string(taskId))
 	if err != nil {
 		return &models.Task{}, err
 	}
@@ -23,7 +23,7 @@ func (w *Wrappers) FindAndUpdateTask(taskId spec.TaskId, newTask spec.UpdateTask
 		Task.Title = *newTask.Title
 	}
 	if newTask.ListId != nil {
-		Task.ListID = int64(*newTask.ListId)
+		Task.ListID.String = *newTask.ListId
 	}
 	if newTask.TaskOrder != nil {
 		Task.TaskOrder = *newTask.TaskOrder

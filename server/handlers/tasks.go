@@ -7,6 +7,7 @@ import (
 	"github.com/hnagrath09/solid-trello/db-api/db_wrappers"
 	spec "github.com/hnagrath09/solid-trello/oapi-specs"
 	"github.com/labstack/echo/v4"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
@@ -20,7 +21,7 @@ func (s *Server) CreateTask(ctx echo.Context) error {
 	Task := models.Task{
 		Title:     reqBody.Title,
 		TaskOrder: reqBody.TaskOrder,
-		ListID:    int64(reqBody.ListId),
+		ListID:    null.String{String: reqBody.ListId, Valid: true},
 	}
 
 	if err := Task.Insert(ctx.Request().Context(), s.Db, boil.Infer()); err != nil {

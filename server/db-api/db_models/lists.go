@@ -23,63 +23,40 @@ import (
 
 // List is an object representing the database table.
 type List struct {
-	ID        int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Title     string    `boil:"title" json:"title" toml:"title" yaml:"title"`
 	ListOrder int       `boil:"list_order" json:"listOrder" toml:"listOrder" yaml:"listOrder"`
 	CreatedAt time.Time `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
+	ID        string    `boil:"id" json:"id" toml:"id" yaml:"id"`
 
 	R *listR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L listL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var ListColumns = struct {
-	ID        string
 	Title     string
 	ListOrder string
 	CreatedAt string
+	ID        string
 }{
-	ID:        "id",
 	Title:     "title",
 	ListOrder: "list_order",
 	CreatedAt: "created_at",
+	ID:        "id",
 }
 
 var ListTableColumns = struct {
-	ID        string
 	Title     string
 	ListOrder string
 	CreatedAt string
+	ID        string
 }{
-	ID:        "lists.id",
 	Title:     "lists.title",
 	ListOrder: "lists.list_order",
 	CreatedAt: "lists.created_at",
+	ID:        "lists.id",
 }
 
 // Generated where
-
-type whereHelperint64 struct{ field string }
-
-func (w whereHelperint64) EQ(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperint64) NEQ(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
-func (w whereHelperint64) LT(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperint64) LTE(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
-func (w whereHelperint64) GT(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperint64) GTE(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
-func (w whereHelperint64) IN(slice []int64) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelperint64) NIN(slice []int64) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
 
 type whereHelperstring struct{ field string }
 
@@ -149,15 +126,15 @@ func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
 }
 
 var ListWhere = struct {
-	ID        whereHelperint64
 	Title     whereHelperstring
 	ListOrder whereHelperint
 	CreatedAt whereHelpertime_Time
+	ID        whereHelperstring
 }{
-	ID:        whereHelperint64{field: "\"lists\".\"id\""},
 	Title:     whereHelperstring{field: "\"lists\".\"title\""},
 	ListOrder: whereHelperint{field: "\"lists\".\"list_order\""},
 	CreatedAt: whereHelpertime_Time{field: "\"lists\".\"created_at\""},
+	ID:        whereHelperstring{field: "\"lists\".\"id\""},
 }
 
 // ListRels is where relationship names are stored.
@@ -181,9 +158,9 @@ func (*listR) NewStruct() *listR {
 type listL struct{}
 
 var (
-	listAllColumns            = []string{"id", "title", "list_order", "created_at"}
+	listAllColumns            = []string{"title", "list_order", "created_at", "id"}
 	listColumnsWithoutDefault = []string{"title", "list_order"}
-	listColumnsWithDefault    = []string{"id", "created_at"}
+	listColumnsWithDefault    = []string{"created_at", "id"}
 	listPrimaryKeyColumns     = []string{"id"}
 	listGeneratedColumns      = []string{}
 )
@@ -506,7 +483,7 @@ func (listL) LoadTasks(ctx context.Context, e boil.ContextExecutor, singular boo
 			}
 
 			for _, a := range args {
-				if a == obj.ID {
+				if queries.Equal(a, obj.ID) {
 					continue Outer
 				}
 			}
@@ -564,7 +541,7 @@ func (listL) LoadTasks(ctx context.Context, e boil.ContextExecutor, singular boo
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if local.ID == foreign.ListID {
+			if queries.Equal(local.ID, foreign.ListID) {
 				local.R.Tasks = append(local.R.Tasks, foreign)
 				if foreign.R == nil {
 					foreign.R = &taskR{}
@@ -586,7 +563,7 @@ func (o *List) AddTasks(ctx context.Context, exec boil.ContextExecutor, insert b
 	var err error
 	for _, rel := range related {
 		if insert {
-			rel.ListID = o.ID
+			queries.Assign(&rel.ListID, o.ID)
 			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
@@ -607,7 +584,7 @@ func (o *List) AddTasks(ctx context.Context, exec boil.ContextExecutor, insert b
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			rel.ListID = o.ID
+			queries.Assign(&rel.ListID, o.ID)
 		}
 	}
 
@@ -631,6 +608,80 @@ func (o *List) AddTasks(ctx context.Context, exec boil.ContextExecutor, insert b
 	return nil
 }
 
+// SetTasks removes all previously related items of the
+// list replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.List's Tasks accordingly.
+// Replaces o.R.Tasks with related.
+// Sets related.R.List's Tasks accordingly.
+func (o *List) SetTasks(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Task) error {
+	query := "update \"tasks\" set \"list_id\" = null where \"list_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.Tasks {
+			queries.SetScanner(&rel.ListID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.List = nil
+		}
+		o.R.Tasks = nil
+	}
+
+	return o.AddTasks(ctx, exec, insert, related...)
+}
+
+// RemoveTasks relationships from objects passed in.
+// Removes related items from R.Tasks (uses pointer comparison, removal does not keep order)
+// Sets related.R.List.
+func (o *List) RemoveTasks(ctx context.Context, exec boil.ContextExecutor, related ...*Task) error {
+	if len(related) == 0 {
+		return nil
+	}
+
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.ListID, nil)
+		if rel.R != nil {
+			rel.R.List = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("list_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.Tasks {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.Tasks)
+			if ln > 1 && i < ln-1 {
+				o.R.Tasks[i] = o.R.Tasks[ln-1]
+			}
+			o.R.Tasks = o.R.Tasks[:ln-1]
+			break
+		}
+	}
+
+	return nil
+}
+
 // Lists retrieves all the records using an executor.
 func Lists(mods ...qm.QueryMod) listQuery {
 	mods = append(mods, qm.From("\"lists\""))
@@ -644,7 +695,7 @@ func Lists(mods ...qm.QueryMod) listQuery {
 
 // FindList retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindList(ctx context.Context, exec boil.ContextExecutor, iD int64, selectCols ...string) (*List, error) {
+func FindList(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*List, error) {
 	listObj := &List{}
 
 	sel := "*"
@@ -1157,7 +1208,7 @@ func (o *ListSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) er
 }
 
 // ListExists checks if the List row exists.
-func ListExists(ctx context.Context, exec boil.ContextExecutor, iD int64) (bool, error) {
+func ListExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
 	sql := "select exists(select 1 from \"lists\" where \"id\"=$1 limit 1)"
 
