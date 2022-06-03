@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "utils/solid-query";
 import { createNewTask } from "../queries";
 
 type AddTaskProps = {
-  listId: number;
+  listId: string;
   tasksCount: number;
 };
 
@@ -33,41 +33,43 @@ export default function AddTask(props: AddTaskProps) {
   };
 
   return (
-    <Show
-      when={isTaskFormOpen()}
-      fallback={
-        <Button
-          size="sm"
-          fullWidth
-          variant="ghost"
-          onClick={() => setIsTaskFormOpen(true)}
-        >
-          + Add Task
-        </Button>
-      }
-    >
-      <form onSubmit={handleSubmit}>
-        <Textarea
-          mb="$2"
-          size="sm"
-          bg="white"
-          value={taskTitle()}
-          onInput={handleInput}
-          placeholder="Enter a title for the task..."
-        />
-        <Box>
-          <Button size="sm" mr="$2" type="submit">
-            Add Task
-          </Button>
-          <IconButton
+    <Box px="$2" pb="$2">
+      <Show
+        when={isTaskFormOpen()}
+        fallback={
+          <Button
             size="sm"
+            fullWidth
             variant="ghost"
-            aria-label="close form"
-            icon={<HiOutlineX />}
-            onClick={() => setIsTaskFormOpen(false)}
+            onClick={() => setIsTaskFormOpen(true)}
+          >
+            + Add Task
+          </Button>
+        }
+      >
+        <form onSubmit={handleSubmit}>
+          <Textarea
+            mb="$2"
+            size="sm"
+            bg="white"
+            value={taskTitle()}
+            onInput={handleInput}
+            placeholder="Enter a title for the task..."
           />
-        </Box>
-      </form>
-    </Show>
+          <Box>
+            <Button size="sm" mr="$2" type="submit">
+              Add Task
+            </Button>
+            <IconButton
+              size="sm"
+              variant="ghost"
+              aria-label="close form"
+              icon={<HiOutlineX />}
+              onClick={() => setIsTaskFormOpen(false)}
+            />
+          </Box>
+        </form>
+      </Show>
+    </Box>
   );
 }

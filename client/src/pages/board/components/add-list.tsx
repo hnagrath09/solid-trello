@@ -1,22 +1,29 @@
 import { batch, createSignal, Show } from "solid-js";
 import { HiOutlineX } from "solid-icons/hi";
 import { Box, Button, HStack, Input, VStack } from "@hope-ui/solid";
-import type { Accessor } from "solid-js";
+import { useMutation, useQueryClient } from "utils/solid-query";
+import { createNewList } from "../queries";
 
 type AddListProps = {
-  onSubmit: (listName: Accessor<string>) => void;
+  listCount: number;
 };
 
 export default function AddList(props: AddListProps) {
-  const { onSubmit } = props;
   let inputRef: HTMLInputElement | undefined;
+
+  const queryClient = useQueryClient();
+  const { mutate } = useMutation(createNewList, {
+    onSuccess: () => queryClient.invalidateQueries("lists"),
+  });
 
   const [listName, setListName] = createSignal("");
   const [isCreateList, setIsCreateList] = createSignal(false);
 
   // submit handler for the add list form
   const handleSubmit = () => {
-    onSubmit(listName);
+    if (listName().trim().length !== 0) {
+      mutate({ title: listName(), listOrder: props.listCount + 1 });
+    }
     batch(() => {
       setIsCreateList(false);
       setListName("");

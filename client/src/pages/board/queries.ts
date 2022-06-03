@@ -22,7 +22,7 @@ export async function createNewTask({
   title,
   taskOrder,
 }: {
-  listId: number;
+  listId: string;
   title: string;
   taskOrder: number;
 }) {
@@ -36,10 +36,10 @@ export async function updateTask({
   taskOrder,
   listId,
 }: {
-  taskId: number;
+  taskId: string;
   title?: string;
   taskOrder?: number;
-  listId?: number;
+  listId?: string;
 }) {
   const { data } = await apiService.updateTask(taskId, {
     title,
