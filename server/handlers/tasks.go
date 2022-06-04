@@ -31,7 +31,7 @@ func (s *Server) CreateTask(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, Task)
 }
 
-func (s *Server) UpdateTask(ctx echo.Context, taskId spec.TaskId) error {
+func (s *Server) UpdateTask(ctx echo.Context, taskId spec.Id) error {
 	taskWrapper := db_wrappers.Wrappers{Db: s.Db, Ctx: ctx.Request().Context()}
 
 	// Extract data from request body
@@ -57,7 +57,7 @@ func (s *Server) ReorderTasks(ctx echo.Context) error {
 	}
 
 	for _, task := range reqBody {
-		taskId := spec.TaskId(task.TaskId)
+		taskId := spec.Id(task.TaskId)
 		newTask := spec.UpdateTaskForm{
 			TaskOrder: &task.TaskOrder,
 		}
@@ -66,5 +66,5 @@ func (s *Server) ReorderTasks(ctx echo.Context) error {
 		}
 	}
 
-	return ctx.JSON(http.StatusOK, models.Task{})
+	return ctx.JSON(http.StatusCreated, models.Task{})
 }

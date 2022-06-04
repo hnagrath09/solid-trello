@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	models "github.com/hnagrath09/solid-trello/db-api/db_models"
+	"github.com/hnagrath09/solid-trello/db-api/db_wrappers"
 	spec "github.com/hnagrath09/solid-trello/oapi-specs"
 	"github.com/labstack/echo/v4"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -61,4 +62,42 @@ func (s *Server) CreateList(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusCreated, List)
+}
+
+func (s *Server) UpdateList(ctx echo.Context, listId spec.Id) error {
+	listWrapper := db_wrappers.Wrappers{Db: s.Db, Ctx: ctx.Request().Context()}
+
+	// Extract data from request body
+	var reqBody spec.UpdateListForm
+	if err := ctx.Bind(&reqBody); err != nil {
+		return ctx.JSON(http.StatusBadRequest, err)
+	}
+
+	List, err := listWrapper.FindAndUpdateList(listId, reqBody)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err)
+	}
+
+	return ctx.JSON(http.StatusCreated, List)
+}
+
+func (s *Server) ReorderLists(ctx echo.Context) error {
+	listWrapper := db_wrappers.Wrappers{Db: s.Db, Ctx: ctx.Request().Context()}
+
+	var reqBody spec.ReorderListsJSONBody
+	if err := ctx.Bind(&reqBody); err != nil {
+		return ctx.JSON(http.StatusBadRequest, err)
+	}
+
+	for _, list := range reqBody {
+		listId := spec.Id(list.ListId)
+		newList := spec.UpdateListForm{
+			ListOrder: &list.ListOrder,
+		}
+		if _, err := listWrapper.FindAndUpdateList(listId, newList); err != nil {
+			return ctx.JSON(http.StatusBadRequest, err)
+		}
+	}
+
+	return ctx.JSON(http.StatusOK, models.List{})
 }

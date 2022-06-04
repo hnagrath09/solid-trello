@@ -10,6 +10,7 @@ import {
 import type {
   CollisionDetector,
   Draggable,
+  DragEventHandler,
   Droppable,
 } from "@thisbeyond/solid-dnd";
 import { useQuery } from "utils/solid-query";
@@ -25,6 +26,8 @@ export default function Board() {
   const [activeItem, setActiveItem] = createSignal(null);
 
   const lists = () => state.data?.map((list) => list) ?? [];
+  const sortedLists = () =>
+    [...lists()].sort((a, b) => a.listOrder - b.listOrder);
   const listIds = () => lists().map((list) => list.id);
 
   const isList = (id: string | number) => listIds().includes(id as string);
@@ -99,34 +102,21 @@ export default function Board() {
         // @Todo: reorderLists
       } else {
         // @Todo: reorderTasks
-        console.log("hello");
       }
     }
   };
 
-  const onDragStart = ({ draggable }: { draggable: Draggable }) => {
+  const onDragStart: DragEventHandler = ({ draggable }) => {
     setActiveItem(draggable.id);
   };
 
-  const onDragOver = ({
-    draggable,
-    droppable,
-  }: {
-    draggable: Draggable;
-    droppable: Droppable;
-  }) => {
+  const onDragOver: DragEventHandler = ({ draggable, droppable }) => {
     if (draggable && droppable && !isList(draggable.id)) {
       move(draggable, droppable);
     }
   };
 
-  const onDragEnd = ({
-    draggable,
-    droppable,
-  }: {
-    draggable: Draggable;
-    droppable: Droppable;
-  }) => {
+  const onDragEnd: DragEventHandler = ({ draggable, droppable }) => {
     if (draggable && droppable) {
       move(draggable, droppable, false);
     }
@@ -157,7 +147,7 @@ export default function Board() {
       >
         <HStack spacing="$4" alignItems="start" h="100%">
           <SortableProvider ids={listIds()}>
-            <For each={lists()}>{(list) => <List list={list} />}</For>
+            <For each={sortedLists()}>{(list) => <List list={list} />}</For>
           </SortableProvider>
           <AddList listCount={lists().length} />
         </HStack>

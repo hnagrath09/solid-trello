@@ -23,6 +23,29 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/List"
+  /lists/reorder:
+    post:
+      operationId: ReorderLists
+      tags:
+        - "application"
+      description: Reorder tasks
+      requestBody:
+        description: Tasks to reorder
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/ReorderListsForm"
+      responses:
+        "201":
+          description: Tasks reordered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/List"
+
   /list:
     post:
       operationId: CreateList
@@ -54,6 +77,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/List"
+  /list/{id}:
+    patch:
+      operationId: UpdateList
+      tags:
+        - "application"
+      description: Update a list
+      parameters:
+        - $ref: "#/components/parameters/id"
+      requestBody:
+        description: List to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateListForm"
+      responses:
+        "200":
+          description: List updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/List"
   /task:
     post:
       operationId: CreateTask
@@ -81,7 +126,6 @@ paths:
                 listId:
                   type: string
                   example: 1
-
       responses:
         "201":
           description: Task created successfully
@@ -89,14 +133,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
-  /task/{taskId}:
+  /task/{id}:
     patch:
       operationId: UpdateTask
       tags:
         - "application"
       description: Update a task
       parameters:
-        - $ref: "#/components/parameters/taskId"
+        - $ref: "#/components/parameters/id"
       requestBody:
         description: Task to update
         required: true
@@ -127,7 +171,7 @@ paths:
               items:
                 $ref: "#/components/schemas/ReorderTasksForm"
       responses:
-        "200":
+        "201":
           description: Tasks reordered successfully
           content:
             application/json:
@@ -135,13 +179,13 @@ paths:
                 $ref: "#/components/schemas/Task"
 components:
   parameters:
-    taskId:
+    id:
       in: path
-      name: taskId
+      name: id
       required: true
       schema:
         type: string
-        example: 2
+        example: e6e36266-c751-4a80-8e43-54cfda7ac02b
   schemas:
     List:
       type: object
@@ -153,7 +197,7 @@ components:
       properties:
         id:
           type: string
-          example: 1
+          example: e6e36266-c751-4a80-8e43-54cfda7ac02b
         title:
           type: string
           example: In Progress
@@ -174,18 +218,27 @@ components:
       properties:
         id:
           type: string
-          example: 1
+          example: e6e36266-c751-4a80-8e43-54cfda7ac02b
         title:
           type: string
           example: Task 1
         listId:
           type: string
-          example: 1
+          example: e6e36266-c751-4a80-8e43-54cfda7ac02b
           description: List id associated with this task
         taskOrder:
           type: integer
           example: 1
           description: Order of this task in the list
+    UpdateListForm:
+      type: object
+      properties:
+        title:
+          type: string
+          example: In Progress
+        listOrder:
+          type: integer
+          example: 1
     UpdateTaskForm:
       type: object
       properties:
@@ -198,8 +251,20 @@ components:
           description: Order of this task in the list
         listId:
           type: string
-          example: 1
+          example: e6e36266-c751-4a80-8e43-54cfda7ac02b
           description: List id associated with this task
+    ReorderListsForm:
+      type: object
+      required:
+        - listId
+        - listOrder
+      properties:
+        listId:
+          type: string
+          example: e6e36266-c751-4a80-8e43-54cfda7ac02b
+        listOrder:
+          type: integer
+          example: 1
     ReorderTasksForm:
       type: object
       required:
@@ -208,7 +273,7 @@ components:
       properties:
         taskId:
           type: string
-          example: 1
+          example: e6e36266-c751-4a80-8e43-54cfda7ac02b
         taskOrder:
           type: integer
           example: 1

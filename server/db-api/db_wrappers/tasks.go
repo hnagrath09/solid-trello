@@ -14,7 +14,7 @@ type Wrappers struct {
 	Ctx context.Context
 }
 
-func (w *Wrappers) FindAndUpdateTask(taskId spec.TaskId, newTask spec.UpdateTaskForm) (*models.Task, error) {
+func (w *Wrappers) FindAndUpdateTask(taskId spec.Id, newTask spec.UpdateTaskForm) (*models.Task, error) {
 	Task, err := models.FindTask(w.Ctx, w.Db, string(taskId))
 	if err != nil {
 		return &models.Task{}, err

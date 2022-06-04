@@ -5,12 +5,9 @@ import {
   maybeTransformStyle,
   SortableProvider,
 } from "@thisbeyond/solid-dnd";
-
-import { List as TList, ReorderTasksForm } from "api";
-
+import { List as TList } from "api";
 import Task from "./task";
 import AddTask from "./add-task";
-import { reorderTasks } from "../queries";
 
 type ListProps = {
   list: TList;
@@ -33,13 +30,7 @@ export default function List(props: ListProps) {
   //   return currentItems().find((task) => task.id === taskId).taskOrder;
   // };
 
-  // const onDragEnd = ({
-  //   draggable,
-  //   droppable,
-  // }: {
-  //   draggable: Draggable;
-  //   droppable: Droppable;
-  // }) => {
+  // const onDragEnd: DragEventHandler = ({ draggable, droppable }) => {
   //   if (draggable && droppable) {
   //     const currentOrder = getOrder(draggable.id as string);
   //     const newOrder = getOrder(droppable.id as string);
