@@ -21,42 +21,6 @@ export default function List(props: ListProps) {
   const sortedTasks = () =>
     [...currentItems()].sort((a, b) => a.taskOrder - b.taskOrder);
 
-  // const onDragStart = ({ draggable }: { draggable: Draggable }) => {
-  //   const task = currentItems().find((task) => task.id === draggable.id);
-  //   setActiveItem(task);
-  // };
-
-  // const getOrder = (taskId: string) => {
-  //   return currentItems().find((task) => task.id === taskId).taskOrder;
-  // };
-
-  // const onDragEnd: DragEventHandler = ({ draggable, droppable }) => {
-  //   if (draggable && droppable) {
-  //     const currentOrder = getOrder(draggable.id as string);
-  //     const newOrder = getOrder(droppable.id as string);
-  //     if (currentOrder !== newOrder) {
-  //       const updatedItems: ReorderTasksForm[] = [];
-  //       currentItems().forEach((task) => {
-  //         if (task.taskOrder === currentOrder) {
-  //           updatedItems.push({ taskId: task.id, taskOrder: newOrder });
-  //         } else if (currentOrder > newOrder && task.taskOrder >= newOrder) {
-  //           updatedItems.push({
-  //             taskId: task.id,
-  //             taskOrder: task.taskOrder + 1,
-  //           });
-  //         } else if (currentOrder < newOrder && task.taskOrder <= newOrder) {
-  //           updatedItems.push({
-  //             taskId: task.id,
-  //             taskOrder: task.taskOrder - 1,
-  //           });
-  //         }
-  //       });
-  //       mutate(updatedItems);
-  //     }
-  //   }
-  //   setActiveItem(null);
-  // };
-
   return (
     <Box
       ref={sortable.ref}

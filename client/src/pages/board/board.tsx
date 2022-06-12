@@ -1,5 +1,7 @@
 import { createSignal, For } from "solid-js";
+import orderBy from "lodash/orderBy";
 import { Box, HStack } from "@hope-ui/solid";
+import { arrayMoveImmutable } from "array-move";
 import {
   closestCenter,
   DragDropProvider,
@@ -13,11 +15,11 @@ import type {
   DragEventHandler,
   Droppable,
 } from "@thisbeyond/solid-dnd";
-import { useQuery } from "utils/solid-query";
+import { useQuery, useMutation, useQueryClient } from "utils/solid-query";
 
 import List from "./components/list";
 import AddList from "./components/add-list";
-import { fetchLists } from "./queries";
+import { fetchLists, reorderLists } from "./queries";
 import ListOverlay from "./components/list-overlay";
 import TaskOverlay from "./components/task-overlay";
 
@@ -25,9 +27,14 @@ export default function Board() {
   const state = useQuery("lists", fetchLists);
   const [activeItem, setActiveItem] = createSignal(null);
 
+  const queryClient = useQueryClient();
+  const { mutate: listReorder } = useMutation(reorderLists, {
+    onSuccess: () => queryClient.invalidateQueries("lists"),
+  });
+
   const lists = () => state.data?.map((list) => list) ?? [];
-  const sortedLists = () =>
-    [...lists()].sort((a, b) => a.listOrder - b.listOrder);
+  const sortedLists = () => orderBy(lists(), (list) => list.listOrder);
+
   const listIds = () => lists().map((list) => list.id);
 
   const isList = (id: string | number) => listIds().includes(id as string);
@@ -99,7 +106,30 @@ export default function Board() {
 
     if (draggableListId !== droppableListId || !onlyWhenChangingList) {
       if (isList(draggable.id)) {
-        // @Todo: reorderLists
+        const fromIndex = sortedLists().findIndex(
+          ({ id }) => id === draggable.id
+        );
+        const toIndex = sortedLists().findIndex(
+          ({ id }) => id === droppable.id
+        );
+        const updatedList = arrayMoveImmutable(
+          sortedLists(),
+          fromIndex,
+          toIndex
+        );
+
+        // Filter out lists which are not being moved
+        const updatedItems = updatedList
+          .map((list, index) => ({ ...list, index }))
+          .filter(({ listOrder, index }) => listOrder !== index);
+
+        if (updatedItems.length) {
+          const reqBody = updatedItems.map(({ id, index }) => ({
+            listId: id,
+            listOrder: index,
+          }));
+          listReorder(reqBody);
+        }
       } else {
         // @Todo: reorderTasks
       }

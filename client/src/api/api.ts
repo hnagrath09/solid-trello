@@ -99,6 +99,25 @@ export interface List {
 /**
  * 
  * @export
+ * @interface ReorderListsForm
+ */
+export interface ReorderListsForm {
+    /**
+     * 
+     * @type {string}
+     * @memberof ReorderListsForm
+     */
+    listId: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ReorderListsForm
+     */
+    listOrder: number;
+}
+/**
+ * 
+ * @export
  * @interface ReorderTasksForm
  */
 export interface ReorderTasksForm {
@@ -145,6 +164,25 @@ export interface Task {
      * @memberof Task
      */
     taskOrder: number;
+}
+/**
+ * 
+ * @export
+ * @interface UpdateListForm
+ */
+export interface UpdateListForm {
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateListForm
+     */
+    title?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof UpdateListForm
+     */
+    listOrder?: number;
 }
 /**
  * 
@@ -279,6 +317,41 @@ export const ApplicationApiAxiosParamCreator = function (configuration?: Configu
         },
         /**
          * Reorder tasks
+         * @param {Array<ReorderListsForm>} reorderListsForm Tasks to reorder
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reorderLists: async (reorderListsForm: Array<ReorderListsForm>, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'reorderListsForm' is not null or undefined
+            assertParamExists('reorderLists', 'reorderListsForm', reorderListsForm)
+            const localVarPath = `/lists/reorder`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(reorderListsForm, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Reorder tasks
          * @param {Array<ReorderTasksForm>} reorderTasksForm Tasks to reorder
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -313,19 +386,58 @@ export const ApplicationApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
+         * Update a list
+         * @param {string} id 
+         * @param {UpdateListForm} updateListForm List to update
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateList: async (id: string, updateListForm: UpdateListForm, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('updateList', 'id', id)
+            // verify required parameter 'updateListForm' is not null or undefined
+            assertParamExists('updateList', 'updateListForm', updateListForm)
+            const localVarPath = `/list/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateListForm, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Update a task
-         * @param {string} taskId 
+         * @param {string} id 
          * @param {UpdateTaskForm} updateTaskForm Task to update
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTask: async (taskId: string, updateTaskForm: UpdateTaskForm, options: any = {}): Promise<RequestArgs> => {
-            // verify required parameter 'taskId' is not null or undefined
-            assertParamExists('updateTask', 'taskId', taskId)
+        updateTask: async (id: string, updateTaskForm: UpdateTaskForm, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('updateTask', 'id', id)
             // verify required parameter 'updateTaskForm' is not null or undefined
             assertParamExists('updateTask', 'updateTaskForm', updateTaskForm)
-            const localVarPath = `/task/{taskId}`
-                .replace(`{${"taskId"}}`, encodeURIComponent(String(taskId)));
+            const localVarPath = `/task/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -392,6 +504,16 @@ export const ApplicationApiFp = function(configuration?: Configuration) {
         },
         /**
          * Reorder tasks
+         * @param {Array<ReorderListsForm>} reorderListsForm Tasks to reorder
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async reorderLists(reorderListsForm: Array<ReorderListsForm>, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<List>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.reorderLists(reorderListsForm, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Reorder tasks
          * @param {Array<ReorderTasksForm>} reorderTasksForm Tasks to reorder
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -401,14 +523,25 @@ export const ApplicationApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Update a list
+         * @param {string} id 
+         * @param {UpdateListForm} updateListForm List to update
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateList(id: string, updateListForm: UpdateListForm, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<List>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateList(id, updateListForm, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Update a task
-         * @param {string} taskId 
+         * @param {string} id 
          * @param {UpdateTaskForm} updateTaskForm Task to update
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateTask(taskId: string, updateTaskForm: UpdateTaskForm, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Task>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTask(taskId, updateTaskForm, options);
+        async updateTask(id: string, updateTaskForm: UpdateTaskForm, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Task>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTask(id, updateTaskForm, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -449,6 +582,15 @@ export const ApplicationApiFactory = function (configuration?: Configuration, ba
         },
         /**
          * Reorder tasks
+         * @param {Array<ReorderListsForm>} reorderListsForm Tasks to reorder
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reorderLists(reorderListsForm: Array<ReorderListsForm>, options?: any): AxiosPromise<List> {
+            return localVarFp.reorderLists(reorderListsForm, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Reorder tasks
          * @param {Array<ReorderTasksForm>} reorderTasksForm Tasks to reorder
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -457,14 +599,24 @@ export const ApplicationApiFactory = function (configuration?: Configuration, ba
             return localVarFp.reorderTasks(reorderTasksForm, options).then((request) => request(axios, basePath));
         },
         /**
+         * Update a list
+         * @param {string} id 
+         * @param {UpdateListForm} updateListForm List to update
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateList(id: string, updateListForm: UpdateListForm, options?: any): AxiosPromise<List> {
+            return localVarFp.updateList(id, updateListForm, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Update a task
-         * @param {string} taskId 
+         * @param {string} id 
          * @param {UpdateTaskForm} updateTaskForm Task to update
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTask(taskId: string, updateTaskForm: UpdateTaskForm, options?: any): AxiosPromise<Task> {
-            return localVarFp.updateTask(taskId, updateTaskForm, options).then((request) => request(axios, basePath));
+        updateTask(id: string, updateTaskForm: UpdateTaskForm, options?: any): AxiosPromise<Task> {
+            return localVarFp.updateTask(id, updateTaskForm, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -510,6 +662,17 @@ export class ApplicationApi extends BaseAPI {
 
     /**
      * Reorder tasks
+     * @param {Array<ReorderListsForm>} reorderListsForm Tasks to reorder
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApplicationApi
+     */
+    public reorderLists(reorderListsForm: Array<ReorderListsForm>, options?: any) {
+        return ApplicationApiFp(this.configuration).reorderLists(reorderListsForm, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Reorder tasks
      * @param {Array<ReorderTasksForm>} reorderTasksForm Tasks to reorder
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -520,15 +683,27 @@ export class ApplicationApi extends BaseAPI {
     }
 
     /**
+     * Update a list
+     * @param {string} id 
+     * @param {UpdateListForm} updateListForm List to update
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApplicationApi
+     */
+    public updateList(id: string, updateListForm: UpdateListForm, options?: any) {
+        return ApplicationApiFp(this.configuration).updateList(id, updateListForm, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Update a task
-     * @param {string} taskId 
+     * @param {string} id 
      * @param {UpdateTaskForm} updateTaskForm Task to update
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApplicationApi
      */
-    public updateTask(taskId: string, updateTaskForm: UpdateTaskForm, options?: any) {
-        return ApplicationApiFp(this.configuration).updateTask(taskId, updateTaskForm, options).then((request) => request(this.axios, this.basePath));
+    public updateTask(id: string, updateTaskForm: UpdateTaskForm, options?: any) {
+        return ApplicationApiFp(this.configuration).updateTask(id, updateTaskForm, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

@@ -1,5 +1,5 @@
 import apiService from "utils/api-service";
-import { ReorderTasksForm } from "api";
+import { ReorderListsForm, ReorderTasksForm } from "api";
 
 export async function fetchLists() {
   const { data } = await apiService.getAllLists();
@@ -14,6 +14,11 @@ export async function createNewList({
   listOrder: number;
 }) {
   const { data } = await apiService.createList({ title, listOrder });
+  return data;
+}
+
+export async function reorderLists(reqBody: ReorderListsForm[]) {
+  const { data } = await apiService.reorderLists(reqBody);
   return data;
 }
 
