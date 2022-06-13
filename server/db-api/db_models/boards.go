@@ -28,6 +28,7 @@ type Board struct {
 	Title     string      `boil:"title" json:"title" toml:"title" yaml:"title"`
 	BoardDesc null.String `boil:"board_desc" json:"boardDesc,omitempty" toml:"boardDesc" yaml:"boardDesc,omitempty"`
 	CreatedAt time.Time   `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
+	UserID    null.String `boil:"user_id" json:"userID,omitempty" toml:"userID" yaml:"userID,omitempty"`
 
 	R *boardR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L boardL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -38,11 +39,13 @@ var BoardColumns = struct {
 	Title     string
 	BoardDesc string
 	CreatedAt string
+	UserID    string
 }{
 	ID:        "id",
 	Title:     "title",
 	BoardDesc: "board_desc",
 	CreatedAt: "created_at",
+	UserID:    "user_id",
 }
 
 var BoardTableColumns = struct {
@@ -50,11 +53,13 @@ var BoardTableColumns = struct {
 	Title     string
 	BoardDesc string
 	CreatedAt string
+	UserID    string
 }{
 	ID:        "boards.id",
 	Title:     "boards.title",
 	BoardDesc: "boards.board_desc",
 	CreatedAt: "boards.created_at",
+	UserID:    "boards.user_id",
 }
 
 // Generated where
@@ -132,22 +137,27 @@ var BoardWhere = struct {
 	Title     whereHelperstring
 	BoardDesc whereHelpernull_String
 	CreatedAt whereHelpertime_Time
+	UserID    whereHelpernull_String
 }{
 	ID:        whereHelperstring{field: "\"boards\".\"id\""},
 	Title:     whereHelperstring{field: "\"boards\".\"title\""},
 	BoardDesc: whereHelpernull_String{field: "\"boards\".\"board_desc\""},
 	CreatedAt: whereHelpertime_Time{field: "\"boards\".\"created_at\""},
+	UserID:    whereHelpernull_String{field: "\"boards\".\"user_id\""},
 }
 
 // BoardRels is where relationship names are stored.
 var BoardRels = struct {
+	User  string
 	Lists string
 }{
+	User:  "User",
 	Lists: "Lists",
 }
 
 // boardR is where relationships are stored.
 type boardR struct {
+	User  *User     `boil:"User" json:"User" toml:"User" yaml:"User"`
 	Lists ListSlice `boil:"Lists" json:"Lists" toml:"Lists" yaml:"Lists"`
 }
 
@@ -160,9 +170,9 @@ func (*boardR) NewStruct() *boardR {
 type boardL struct{}
 
 var (
-	boardAllColumns            = []string{"id", "title", "board_desc", "created_at"}
+	boardAllColumns            = []string{"id", "title", "board_desc", "created_at", "user_id"}
 	boardColumnsWithoutDefault = []string{"title"}
-	boardColumnsWithDefault    = []string{"id", "board_desc", "created_at"}
+	boardColumnsWithDefault    = []string{"id", "board_desc", "created_at", "user_id"}
 	boardPrimaryKeyColumns     = []string{"id"}
 	boardGeneratedColumns      = []string{}
 )
@@ -445,6 +455,17 @@ func (q boardQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool
 	return count > 0, nil
 }
 
+// User pointed to by the foreign key.
+func (o *Board) User(mods ...qm.QueryMod) userQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.UserID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return Users(queryMods...)
+}
+
 // Lists retrieves all the list's Lists with an executor.
 func (o *Board) Lists(mods ...qm.QueryMod) listQuery {
 	var queryMods []qm.QueryMod
@@ -457,6 +478,114 @@ func (o *Board) Lists(mods ...qm.QueryMod) listQuery {
 	)
 
 	return Lists(queryMods...)
+}
+
+// LoadUser allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (boardL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular bool, maybeBoard interface{}, mods queries.Applicator) error {
+	var slice []*Board
+	var object *Board
+
+	if singular {
+		object = maybeBoard.(*Board)
+	} else {
+		slice = *maybeBoard.(*[]*Board)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &boardR{}
+		}
+		if !queries.IsNil(object.UserID) {
+			args = append(args, object.UserID)
+		}
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &boardR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.UserID) {
+					continue Outer
+				}
+			}
+
+			if !queries.IsNil(obj.UserID) {
+				args = append(args, obj.UserID)
+			}
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`users`),
+		qm.WhereIn(`users.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load User")
+	}
+
+	var resultSlice []*User
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice User")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for users")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
+	}
+
+	if len(boardAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.User = foreign
+		if foreign.R == nil {
+			foreign.R = &userR{}
+		}
+		foreign.R.Boards = append(foreign.R.Boards, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if queries.Equal(local.UserID, foreign.ID) {
+				local.R.User = foreign
+				if foreign.R == nil {
+					foreign.R = &userR{}
+				}
+				foreign.R.Boards = append(foreign.R.Boards, local)
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadLists allows an eager lookup of values, cached into the
@@ -554,6 +683,86 @@ func (boardL) LoadLists(ctx context.Context, e boil.ContextExecutor, singular bo
 		}
 	}
 
+	return nil
+}
+
+// SetUser of the board to the related item.
+// Sets o.R.User to related.
+// Adds o to related.R.Boards.
+func (o *Board) SetUser(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"boards\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+		strmangle.WhereClause("\"", "\"", 2, boardPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	queries.Assign(&o.UserID, related.ID)
+	if o.R == nil {
+		o.R = &boardR{
+			User: related,
+		}
+	} else {
+		o.R.User = related
+	}
+
+	if related.R == nil {
+		related.R = &userR{
+			Boards: BoardSlice{o},
+		}
+	} else {
+		related.R.Boards = append(related.R.Boards, o)
+	}
+
+	return nil
+}
+
+// RemoveUser relationship.
+// Sets o.R.User to nil.
+// Removes o from all passed in related items' relationships struct.
+func (o *Board) RemoveUser(ctx context.Context, exec boil.ContextExecutor, related *User) error {
+	var err error
+
+	queries.SetScanner(&o.UserID, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("user_id")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	if o.R != nil {
+		o.R.User = nil
+	}
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	for i, ri := range related.R.Boards {
+		if queries.Equal(o.UserID, ri.UserID) {
+			continue
+		}
+
+		ln := len(related.R.Boards)
+		if ln > 1 && i < ln-1 {
+			related.R.Boards[i] = related.R.Boards[ln-1]
+		}
+		related.R.Boards = related.R.Boards[:ln-1]
+		break
+	}
 	return nil
 }
 
