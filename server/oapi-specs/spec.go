@@ -25,6 +25,13 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
+// CreateUserDto defines model for CreateUserDto.
+type CreateUserDto struct {
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}
+
 // List defines model for List.
 type List struct {
 	Id string `json:"id"`
@@ -78,6 +85,13 @@ type UpdateTaskForm struct {
 	Title     *string `json:"title,omitempty"`
 }
 
+// User defines model for User.
+type User struct {
+	Email string `json:"email"`
+	Id    string `json:"id"`
+	Name  string `json:"name"`
+}
+
 // Id defines model for id.
 type Id string
 
@@ -92,6 +106,9 @@ type UpdateListJSONBody UpdateListForm
 
 // ReorderListsJSONBody defines parameters for ReorderLists.
 type ReorderListsJSONBody []ReorderListsForm
+
+// CreateUserJSONBody defines parameters for CreateUser.
+type CreateUserJSONBody CreateUserDto
 
 // CreateTaskJSONBody defines parameters for CreateTask.
 type CreateTaskJSONBody struct {
@@ -114,6 +131,9 @@ type UpdateListJSONRequestBody UpdateListJSONBody
 
 // ReorderListsJSONRequestBody defines body for ReorderLists for application/json ContentType.
 type ReorderListsJSONRequestBody ReorderListsJSONBody
+
+// CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
+type CreateUserJSONRequestBody CreateUserJSONBody
 
 // CreateTaskJSONRequestBody defines body for CreateTask for application/json ContentType.
 type CreateTaskJSONRequestBody CreateTaskJSONBody
@@ -215,6 +235,11 @@ type ClientInterface interface {
 
 	ReorderLists(ctx context.Context, body ReorderListsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreateUser request  with any body
+	CreateUserWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateUser(ctx context.Context, body CreateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateTask request  with any body
 	CreateTaskWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -299,6 +324,28 @@ func (c *Client) ReorderListsWithBody(ctx context.Context, contentType string, b
 
 func (c *Client) ReorderLists(ctx context.Context, body ReorderListsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewReorderListsRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateUserWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateUserRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateUser(ctx context.Context, body CreateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateUserRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -528,6 +575,46 @@ func NewReorderListsRequestWithBody(server string, contentType string, body io.R
 	return req, nil
 }
 
+// NewCreateUserRequest calls the generic CreateUser builder with application/json body
+func NewCreateUserRequest(server string, body CreateUserJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateUserRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateUserRequestWithBody generates requests for CreateUser with any type of body
+func NewCreateUserRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	queryUrl, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	basePath := fmt.Sprintf("/signup")
+	if basePath[0] == '/' {
+		basePath = basePath[1:]
+	}
+
+	queryUrl, err = queryUrl.Parse(basePath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryUrl.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreateTaskRequest calls the generic CreateTask builder with application/json body
 func NewCreateTaskRequest(server string, body CreateTaskJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -717,6 +804,11 @@ type ClientWithResponsesInterface interface {
 
 	ReorderListsWithResponse(ctx context.Context, body ReorderListsJSONRequestBody) (*ReorderListsResponse, error)
 
+	// CreateUser request  with any body
+	CreateUserWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*CreateUserResponse, error)
+
+	CreateUserWithResponse(ctx context.Context, body CreateUserJSONRequestBody) (*CreateUserResponse, error)
+
 	// CreateTask request  with any body
 	CreateTaskWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*CreateTaskResponse, error)
 
@@ -815,6 +907,28 @@ func (r ReorderListsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ReorderListsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateUserResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *User
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateUserResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateUserResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -945,6 +1059,23 @@ func (c *ClientWithResponses) ReorderListsWithResponse(ctx context.Context, body
 		return nil, err
 	}
 	return ParseReorderListsResponse(rsp)
+}
+
+// CreateUserWithBodyWithResponse request with arbitrary body returning *CreateUserResponse
+func (c *ClientWithResponses) CreateUserWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*CreateUserResponse, error) {
+	rsp, err := c.CreateUserWithBody(ctx, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateUserResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateUserWithResponse(ctx context.Context, body CreateUserJSONRequestBody) (*CreateUserResponse, error) {
+	rsp, err := c.CreateUser(ctx, body)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateUserResponse(rsp)
 }
 
 // CreateTaskWithBodyWithResponse request with arbitrary body returning *CreateTaskResponse
@@ -1102,6 +1233,32 @@ func ParseReorderListsResponse(rsp *http.Response) (*ReorderListsResponse, error
 	return response, nil
 }
 
+// ParseCreateUserResponse parses an HTTP response from a CreateUserWithResponse call
+func ParseCreateUserResponse(rsp *http.Response) (*CreateUserResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateUserResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest User
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseCreateTaskResponse parses an HTTP response from a CreateTaskWithResponse call
 func ParseCreateTaskResponse(rsp *http.Response) (*CreateTaskResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -1195,6 +1352,9 @@ type ServerInterface interface {
 	// (POST /lists/reorder)
 	ReorderLists(ctx echo.Context) error
 
+	// (POST /signup)
+	CreateUser(ctx echo.Context) error
+
 	// (POST /task)
 	CreateTask(ctx echo.Context) error
 
@@ -1258,6 +1418,17 @@ func (w *ServerInterfaceWrapper) ReorderLists(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.ReorderLists(ctx)
+	return err
+}
+
+// CreateUser converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateUser(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{""})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.CreateUser(ctx)
 	return err
 }
 
@@ -1333,6 +1504,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PATCH(baseURL+"/list/:id", wrapper.UpdateList)
 	router.GET(baseURL+"/lists", wrapper.GetAllLists)
 	router.POST(baseURL+"/lists/reorder", wrapper.ReorderLists)
+	router.POST(baseURL+"/signup", wrapper.CreateUser)
 	router.POST(baseURL+"/task", wrapper.CreateTask)
 	router.PATCH(baseURL+"/task/:id", wrapper.UpdateTask)
 	router.POST(baseURL+"/tasks/reorder", wrapper.ReorderTasks)
@@ -1342,22 +1514,24 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the Swagger specification corresponding to the generated code

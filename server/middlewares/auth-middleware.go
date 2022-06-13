@@ -23,8 +23,9 @@ func AuthMiddleware() echo.MiddlewareFunc {
 				return true
 			case "/signup":
 				return true
+			// @Todo: Change default to false once authentication setup is complete
 			default:
-				return false
+				return true
 			}
 		},
 		SigningKey: []byte("secret"),

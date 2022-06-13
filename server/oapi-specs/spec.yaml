@@ -11,6 +11,26 @@ servers:
     description: Local server
 
 paths:
+  /signup:
+    post:
+      operationId: CreateUser
+      tags:
+        - "application"
+      description: Create a new user
+      requestBody:
+        description: User object
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserDto"
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
   /lists:
     get:
       operationId: GetAllLists
@@ -196,6 +216,38 @@ components:
         type: string
         example: e6e36266-c751-4a80-8e43-54cfda7ac02b
   schemas:
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - name
+      properties:
+        id:
+          type: string
+          example: e6e36266-c751-4a80-8e43-54cfda7ac02b
+        email:
+          type: string
+          example: "someone@example.com"
+        name:
+          type: string
+          example: "John Doe"
+    CreateUserDto:
+      type: object
+      required:
+        - email
+        - password
+        - name
+      properties:
+        email:
+          type: string
+          example: "someone@example.com"
+        password:
+          type: string
+          example: "password"
+        name:
+          type: string
+          example: "John Doe"
     List:
       type: object
       required:

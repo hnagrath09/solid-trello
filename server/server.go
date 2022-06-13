@@ -6,6 +6,7 @@ import (
 
 	db_api "github.com/hnagrath09/solid-trello/db-api"
 	"github.com/hnagrath09/solid-trello/handlers"
+	"github.com/hnagrath09/solid-trello/middlewares"
 	spec "github.com/hnagrath09/solid-trello/oapi-specs"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -26,7 +27,7 @@ func main() {
 	e.Use(middleware.Logger())
 
 	//Authentication Middleware
-	// e.Use(middlewares.AuthMiddleware())
+	e.Use(middlewares.AuthMiddleware())
 
 	// CORS Middleware
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
