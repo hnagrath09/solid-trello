@@ -4,10 +4,12 @@
 package models
 
 var TableNames = struct {
+	Boards           string
 	Lists            string
 	SchemaMigrations string
 	Tasks            string
 }{
+	Boards:           "boards",
 	Lists:            "lists",
 	SchemaMigrations: "schema_migrations",
 	Tasks:            "tasks",
