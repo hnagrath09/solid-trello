@@ -32,6 +32,14 @@ type CreateUserDto struct {
 	Password string `json:"password"`
 }
 
+// CreateUserRes defines model for CreateUserRes.
+type CreateUserRes struct {
+
+	// JWT token
+	Token string `json:"token"`
+	User  User   `json:"user"`
+}
+
 // List defines model for List.
 type List struct {
 	Id string `json:"id"`
@@ -916,7 +924,7 @@ func (r ReorderListsResponse) StatusCode() int {
 type CreateUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON201      *User
+	JSON201      *CreateUserRes
 }
 
 // Status returns HTTPResponse.Status
@@ -1248,7 +1256,7 @@ func ParseCreateUserResponse(rsp *http.Response) (*CreateUserResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest User
+		var dest CreateUserRes
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1514,24 +1522,25 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"V9glbkhUNBM/m65mq/8DAAD//06UCxy6GAAA",
 }
 
 // GetSwagger returns the Swagger specification corresponding to the generated code

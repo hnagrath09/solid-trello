@@ -30,7 +30,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: "#/components/schemas/CreateUserRes"
   /lists:
     get:
       operationId: GetAllLists
@@ -248,6 +248,17 @@ components:
         name:
           type: string
           example: "John Doe"
+    CreateUserRes:
+      type: object
+      required:
+        - token
+        - user
+      properties:
+        token:
+          type: string
+          description: JWT token
+        user:
+          $ref: "#/components/schemas/User"
     List:
       type: object
       required:

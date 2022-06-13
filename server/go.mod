@@ -6,6 +6,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.5.4
 	github.com/friendsofgo/errors v0.9.2
 	github.com/getkin/kin-openapi v0.37.0
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/volatiletech/null/v8 v8.1.2
@@ -18,7 +19,6 @@ require (
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
