@@ -22,6 +22,12 @@ func main() {
 
 	e := echo.New()
 
+	// Logger Middleware
+	e.Use(middleware.Logger())
+
+	//Authentication Middleware
+	// e.Use(middlewares.AuthMiddleware())
+
 	// CORS Middleware
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},

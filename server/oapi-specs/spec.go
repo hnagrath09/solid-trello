@@ -21,6 +21,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
 // List defines model for List.
 type List struct {
 	Id string `json:"id"`
@@ -1210,6 +1214,8 @@ type ServerInterfaceWrapper struct {
 func (w *ServerInterfaceWrapper) CreateList(ctx echo.Context) error {
 	var err error
 
+	ctx.Set(BearerAuthScopes, []string{""})
+
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.CreateList(ctx)
 	return err
@@ -1226,6 +1232,8 @@ func (w *ServerInterfaceWrapper) UpdateList(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
 	}
 
+	ctx.Set(BearerAuthScopes, []string{""})
+
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.UpdateList(ctx, id)
 	return err
@@ -1234,6 +1242,8 @@ func (w *ServerInterfaceWrapper) UpdateList(ctx echo.Context) error {
 // GetAllLists converts echo context to params.
 func (w *ServerInterfaceWrapper) GetAllLists(ctx echo.Context) error {
 	var err error
+
+	ctx.Set(BearerAuthScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.GetAllLists(ctx)
@@ -1244,6 +1254,8 @@ func (w *ServerInterfaceWrapper) GetAllLists(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) ReorderLists(ctx echo.Context) error {
 	var err error
 
+	ctx.Set(BearerAuthScopes, []string{""})
+
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.ReorderLists(ctx)
 	return err
@@ -1252,6 +1264,8 @@ func (w *ServerInterfaceWrapper) ReorderLists(ctx echo.Context) error {
 // CreateTask converts echo context to params.
 func (w *ServerInterfaceWrapper) CreateTask(ctx echo.Context) error {
 	var err error
+
+	ctx.Set(BearerAuthScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.CreateTask(ctx)
@@ -1269,6 +1283,8 @@ func (w *ServerInterfaceWrapper) UpdateTask(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
 	}
 
+	ctx.Set(BearerAuthScopes, []string{""})
+
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.UpdateTask(ctx, id)
 	return err
@@ -1277,6 +1293,8 @@ func (w *ServerInterfaceWrapper) UpdateTask(ctx echo.Context) error {
 // ReorderTasks converts echo context to params.
 func (w *ServerInterfaceWrapper) ReorderTasks(ctx echo.Context) error {
 	var err error
+
+	ctx.Set(BearerAuthScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.ReorderTasks(ctx)
@@ -1324,21 +1342,22 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+RX32/qNhT+Vyxvj+EG2l4uyls3aVUlpFUbe6p4cOMDuDVxZpt2COV/n46dkABJGugv",
-	"pPvSktg+Pt93fn3Z0FgtU5VAYg2NNjRlmi3BgnZPgru/CY1oyuyCBjRhS6ARLgRUw78roYHTyOoVBNTE",
-	"C1gyPAH/sWUqcSMM4XJ4MRz24h/fB70rNur3RnB12ft+Fc84+8Hi/sUDDahdp7jbWC2SOc2yrLDm3BgL",
-	"Y51zWqWgrYCKc2+9KqBSGPun5qDRHAcTa5FaoRC0e03UjNgFENxHROJ+PyimeWlMJBbmoNGaZebJu2dh",
-	"6X78qmFGI/pLWDId5uDCCTNP7pS3w7Rma/csLGKqwrtNyJ1Wcw3G1BBWjca9D4+3UXhUxTndnlcPjxBb",
-	"vPEvULiGVJs/lF4e8o3nbz+C8625wSGhe8ByHzqCQXYbwCAp7wUGbb2eQMIQ3FhkEAKgwTHYc5er99Vh",
-	"dyn1ocXiedsFOnbFwQkzRsWCWeDkRdhFibuK9eyYri04JJIMjqu1bX62x+iflDMLyFlzqXUqj5M6RYM7",
-	"iPe1yv+Zg75HG74SyUy5buIN0b+VFJxMNEipyPXdLQ3oM2jjnR1863/r47UqhYSlgkb00r0K3HB1TIey",
-	"GHXK/9/F+7sGZoGwAh4GieEaRidfHfslTFEw9jfF12gnVomFxJlkaSpF7I6Fjwbtbiqj+zMTcae7VSqo",
-	"qXDwTE0GWkViB/1Ak7g7TKoS4+Fc9AdHkdE2uh3PTS55fzgxqzgGY2YrKdc+idjcINzKvXSKCy7y4Ubw",
-	"zMswGy8O4+8LtSn+ZVdxKVUKuft6JOWWUHCaTU9Pmjae9npdSxBXbmeHIPY/J4jen6OD6JycQ0353oAl",
-	"TErid+2H7wbstZTjfO1NkDtpT499X3secrHj9dFkhNprseamlos1UujUXVaquvQNba0TIwcauAM7TmNi",
-	"9hY4z6EHeadyj47LYFvIx/YBlE/3ugE08UvvN4D2dPrgNY1w9Jy65pwgXpL7XE4UksDLNjG7DbDSla0c",
-	"7DLJnPD4mknmP0IbXDphkiEDnSdZbSKVgvT8JtlWJrcE8QsmWWsQT5hkLunfqXlP8sXPaN7lN/+5N++2",
-	"iJ3SvLOAGtDPRZ2stKQRXVibRmEoVczkQhkbjfoj/OLYkzu4TPxpmk2z/wMAAP//8rmk7BYUAAA=",
+	"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",
 }
 
 // GetSwagger returns the Swagger specification corresponding to the generated code

@@ -3,6 +3,9 @@ info:
   version: 1.0.0
   title: Solid Trello API
 
+security:
+  - BearerAuth: []
+
 servers:
   - url: http://localhost:8080
     description: Local server
@@ -177,7 +180,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
+
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   parameters:
     id:
       in: path
