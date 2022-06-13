@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS boards;
+ALTER TABLE lists DROP COLUMN board_id;
