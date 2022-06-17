@@ -50,6 +50,12 @@ type List struct {
 	Title     string `json:"title"`
 }
 
+// LoginDto defines model for LoginDto.
+type LoginDto struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 // ReorderListsForm defines model for ReorderListsForm.
 type ReorderListsForm struct {
 	ListId    string `json:"listId"`
@@ -115,6 +121,9 @@ type UpdateListJSONBody UpdateListForm
 // ReorderListsJSONBody defines parameters for ReorderLists.
 type ReorderListsJSONBody []ReorderListsForm
 
+// LoginJSONBody defines parameters for Login.
+type LoginJSONBody LoginDto
+
 // CreateUserJSONBody defines parameters for CreateUser.
 type CreateUserJSONBody CreateUserDto
 
@@ -139,6 +148,9 @@ type UpdateListJSONRequestBody UpdateListJSONBody
 
 // ReorderListsJSONRequestBody defines body for ReorderLists for application/json ContentType.
 type ReorderListsJSONRequestBody ReorderListsJSONBody
+
+// LoginJSONRequestBody defines body for Login for application/json ContentType.
+type LoginJSONRequestBody LoginJSONBody
 
 // CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
 type CreateUserJSONRequestBody CreateUserJSONBody
@@ -243,6 +255,11 @@ type ClientInterface interface {
 
 	ReorderLists(ctx context.Context, body ReorderListsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// Login request  with any body
+	LoginWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	Login(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateUser request  with any body
 	CreateUserWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -332,6 +349,28 @@ func (c *Client) ReorderListsWithBody(ctx context.Context, contentType string, b
 
 func (c *Client) ReorderLists(ctx context.Context, body ReorderListsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewReorderListsRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LoginWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoginRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoginRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -583,6 +622,46 @@ func NewReorderListsRequestWithBody(server string, contentType string, body io.R
 	return req, nil
 }
 
+// NewLoginRequest calls the generic Login builder with application/json body
+func NewLoginRequest(server string, body LoginJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewLoginRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewLoginRequestWithBody generates requests for Login with any type of body
+func NewLoginRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	queryUrl, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	basePath := fmt.Sprintf("/login")
+	if basePath[0] == '/' {
+		basePath = basePath[1:]
+	}
+
+	queryUrl, err = queryUrl.Parse(basePath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryUrl.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreateUserRequest calls the generic CreateUser builder with application/json body
 func NewCreateUserRequest(server string, body CreateUserJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -812,6 +891,11 @@ type ClientWithResponsesInterface interface {
 
 	ReorderListsWithResponse(ctx context.Context, body ReorderListsJSONRequestBody) (*ReorderListsResponse, error)
 
+	// Login request  with any body
+	LoginWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*LoginResponse, error)
+
+	LoginWithResponse(ctx context.Context, body LoginJSONRequestBody) (*LoginResponse, error)
+
 	// CreateUser request  with any body
 	CreateUserWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*CreateUserResponse, error)
 
@@ -915,6 +999,28 @@ func (r ReorderListsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ReorderListsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type LoginResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *CreateUserRes
+}
+
+// Status returns HTTPResponse.Status
+func (r LoginResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LoginResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1067,6 +1173,23 @@ func (c *ClientWithResponses) ReorderListsWithResponse(ctx context.Context, body
 		return nil, err
 	}
 	return ParseReorderListsResponse(rsp)
+}
+
+// LoginWithBodyWithResponse request with arbitrary body returning *LoginResponse
+func (c *ClientWithResponses) LoginWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*LoginResponse, error) {
+	rsp, err := c.LoginWithBody(ctx, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoginResponse(rsp)
+}
+
+func (c *ClientWithResponses) LoginWithResponse(ctx context.Context, body LoginJSONRequestBody) (*LoginResponse, error) {
+	rsp, err := c.Login(ctx, body)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoginResponse(rsp)
 }
 
 // CreateUserWithBodyWithResponse request with arbitrary body returning *CreateUserResponse
@@ -1241,6 +1364,32 @@ func ParseReorderListsResponse(rsp *http.Response) (*ReorderListsResponse, error
 	return response, nil
 }
 
+// ParseLoginResponse parses an HTTP response from a LoginWithResponse call
+func ParseLoginResponse(rsp *http.Response) (*LoginResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LoginResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CreateUserRes
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseCreateUserResponse parses an HTTP response from a CreateUserWithResponse call
 func ParseCreateUserResponse(rsp *http.Response) (*CreateUserResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -1360,6 +1509,9 @@ type ServerInterface interface {
 	// (POST /lists/reorder)
 	ReorderLists(ctx echo.Context) error
 
+	// (POST /login)
+	Login(ctx echo.Context) error
+
 	// (POST /signup)
 	CreateUser(ctx echo.Context) error
 
@@ -1426,6 +1578,17 @@ func (w *ServerInterfaceWrapper) ReorderLists(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.ReorderLists(ctx)
+	return err
+}
+
+// Login converts echo context to params.
+func (w *ServerInterfaceWrapper) Login(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{""})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.Login(ctx)
 	return err
 }
 
@@ -1512,6 +1675,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PATCH(baseURL+"/list/:id", wrapper.UpdateList)
 	router.GET(baseURL+"/lists", wrapper.GetAllLists)
 	router.POST(baseURL+"/lists/reorder", wrapper.ReorderLists)
+	router.POST(baseURL+"/login", wrapper.Login)
 	router.POST(baseURL+"/signup", wrapper.CreateUser)
 	router.POST(baseURL+"/task", wrapper.CreateTask)
 	router.PATCH(baseURL+"/task/:id", wrapper.UpdateTask)
@@ -1522,25 +1686,26 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+RYXW/bNhT9KwS3RyWykzQN/LR0xYoUAVa0DvYQ+IGRri02FKmRVDMj8H8fLilZkiXZ",
-	"suumAfqSWLr8OOd+kOfqmUYqzZQEaQ2dPNOMaZaCBe2eeOz+SjqhGbMJDahkKdAJGgKq4d+ca4jpxOoc",
-	"AmqiBFKGM+A/lmYCB8IlnF+eXV6eRG/fjE8u2NXo5Aouzk/eXETzmL1l0ejsgQbULjMcbazmckFXq1W5",
-	"moPxpwZm4c6Afm+VQ6lVBtpycGZIGRfNbY1KQUn4o3hzGqm0vUvJpj7xo0okea+ga3TGjHlSOm7OWL9t",
-	"s6i76L6AGdQnuP1n64nq4StEFreqGH/2HJuMrXoEiT9iMJHmmeUKY/Txnynxpg70uQGNU37XMKcT+ltY",
-	"BT4sfB3ihi3c5YpugS6wt9zYNkYeHyMTAiq4sX/r2INv8nWviZoTmwDBcYRL9/tBsXpAuLSwQGYBtcw8",
-	"engWUrPLH1NmHt0svw7Tmi3dM7diI3FuJPmk1UKDMTszwVWPX6NEVOfZ5ePPoNCGrjZ/KZ22/Y3zb36E",
-	"z9fLjdsO3SBWYBhIBr3bQwadciwyuNbuBOKG4MAyg5AADfbhXkCu79fF3aXUDy0W77cm0VtXHDFhxqiI",
-	"MwsxeeI2qXjXub46T3cWHDqSjPertXV+bo/RXRYzC+iz/lIbVB4HnRQ9cJDvrsr/lYPedltx4R1LLByr",
-	"RvcRHV3JXOqIHvGA0gmiXHO7/ILXmKf9DpgGfZ3bBJ8e3BNmE7NeN9BCcOFK3lqBSazNvCbjcu70VxEZ",
-	"+kUJHpOpBiEUuf50QwP6DbTx0R+fjk5HSFhlIFnG6YSeu1eBE5MOVihK7aD8/2YCeRlEWJkvGEiGNkz3",
-	"wnrrTegmMPadipe4TqSkBemWZFkmeOSmhV+NcrqpkqovWdmN66J2JPWdRDino6StIpGj3tLgbg+TKWk8",
-	"nbPReC9nbNNCzs99kDyemJg8isCYeS7E0lclWxikW9uXztDgIh8+83jl2w4bJe34+5OvL/7VMe1Sqmpc",
-	"7ruZVENCHtPV7PCk2aqhm5fHliDmbuSAII5eJogez95BdCAX0FG+H8ASJgTxozbD9wHstRC3he27KA8S",
-	"8577pphv+6KBem9nhNqL2/5DrVC/pBT+Ta/Uhf53HGuDPNJqKgZ4x4l2zN6S52s4gzyoAtF+GWz4QubZ",
-	"gCtIwhNxLXD3NXRn1r449onS/PzRQR9NpLg0XjIcza8UfcAOuBts2SRtD0mhYbvCMfWm46mCjW50vEsJ",
-	"7y0eruOYIF9SYK6ueZd65WkxTFVUUNZNzxB54eT1z5EX/lNLD6QDU2iwvOhMpKrten3yYt0MbgniT5AX",
-	"W4N4gLxwSX+kG3VaGF/iRq2+bL32G3VbxA65UWvdpyuUet95P8OiMKC/lWWUa1H0l5MwFCpiIlHGTq5G",
-	"V9glbkhUNBM/m65mq/8DAAD//06UCxy6GAAA",
+	"H4sIAAAAAAAC/+RYW0/cOBT+K5Z3HwOZAUrRPC3daisqpK1aqn1APJjkMOPi2FnbKYvQ/PfVOU4mySSZ",
+	"WweK1BeYxLfvOzd/J088MVluNGjv+OSJ58KKDDxYepIp/dV8wnPhZzziWmTAJzgQcQv/FtJCyifeFhBx",
+	"l8wgE7gC/hNZrnAinMLx6dHp6UHy9s344EScjQ7O4OT44M1JcpeKtyIZHd3yiPvHHGc7b6We8vl8Xu1G",
+	"MP60IDx8dWDfe0MorcnBegk0DJmQqn2sMxkYDX+Ubw4Tk3VPqdg0F340M83eG+ibnQvnHoxN2ysWb7ss",
+	"mia6LmFGzQV0/s1iobn9BonHo2rGnwPHNmNv7kHjjxRcYmXupUEfffznioWhHvSFA4tLfrdwxyf8t7h2",
+	"fFzaOsYDO7irHWmDPrCX0vkuRpnuIxIirqTzf9s0gG/zpdfM3DE/A4bzmNT0+9aIpkOk9jBFZhH3wt0H",
+	"eB4yt84eV8Ld06qwj7BWPNKz9GopcC40+2TN1IJzayOBsifsUSFq8uy1sZlKvefo33c89+H+DAY5YYi4",
+	"v4zNuviR98VzxMpiu3E3EJaolBjWOaEkg1ExQAaduS8yuNf6wJeO4cQq8pEAj7bhXkJuntfHnVLhWZM8",
+	"2K1N9JKSOmXCOZNI4SFlD9LPat5Nrq/O0r2FAg3JxtvViEV8rvbR1zwVHtBmw6m2UXrsVOEG4CDfdZn/",
+	"Kzu9a7byot5Xmd9Xjm4jlvqCubovBkQPSj5ICiv94xe8fgPtdyAs2PPCz/Dplp4wmoQPeoeXQhF3CqM1",
+	"mJn3edCSUt/RzVl6hn8xSqbsyoJShp1/uuAR/w7WBe+PD0eHIyRsctAil3zCj+lVRCKYYMWq0jwm/G8H",
+	"UJBvTFTxgo4UOIbhXo5ehiE0Ezj/zqSPuE9itAdNW4o8VzKhZfE3Z0jv1RL7JTO7dV00StJQJcI1PSnt",
+	"DUuIeqd3oDNcbrQLdI5G462MsUrDkZ2HIAU8KXNFkoBzd4VSjyErxdQh3ca5/AYHyPPxk0znoV3yyazr",
+	"/1D5hvxfl2kKqbrhuu5nUk+JZcrnN7sHzUrt3748VjixoJkbOHH0Mk4MeLZ2IoGcQk/6fgDPhFIszFp2",
+	"3wfw50pdlmM/RHmjJiRwX25CurZood7aGLEN4na4qJXql1UNS9sqTaH/A2VtI4t0mooNrEOiHaO34vka",
+	"alAAVSLaMoKxIRx2FvWLTDBq2pd9RYP8ecrIolHty1YClVhIQXsplHvRGtL+ptIPbwrpgdTb+MHJqS7y",
+	"DaSAhod+b9S4nskl7c9nPcRxiJWX90umxVqPELAd7mhfNaurXVL2En3uuApD+1NnS18Fxus6kq1F3Hma",
+	"MuTLSsy13KLQq6r2ZuquhrJoPjeRedTm/ByZFz7VDUDaMYQ2lnm9gVS3v69P5i2a8hVO/Akyb6UTd5B5",
+	"FPR7UjZX5eBLKJv6C+NrVzarPLaLsml8BaBEafb/1zeYFA7s9yqNCqvKPn8Sx8okQs2M85Oz0Rl268u3",
+	"eyIUC6v5/Gb+fwAAAP//94QJdPoaAAA=",
 }
 
 // GetSwagger returns the Swagger specification corresponding to the generated code

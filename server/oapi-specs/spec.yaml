@@ -46,6 +46,26 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/List"
+  /login:
+    post:
+      operationId: Login
+      tags:
+        - "application"
+      description: Login a user
+      requestBody:
+        description: Login credentials
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginDto"
+      responses:
+        "200":
+          description: Logged-in successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateUserRes"
   /lists/reorder:
     post:
       operationId: ReorderLists
@@ -259,6 +279,18 @@ components:
           description: JWT token
         user:
           $ref: "#/components/schemas/User"
+    LoginDto:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          example: "someone@example.com"
+        password:
+          type: string
+          example: "password"
     List:
       type: object
       required:
