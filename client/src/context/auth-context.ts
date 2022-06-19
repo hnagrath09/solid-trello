@@ -1,10 +1,12 @@
 import { LoginDto, User } from "api";
-import { createContext } from "solid-js";
+import { Accessor, createContext } from "solid-js";
 
 export const AuthContext = createContext<{
-  user: User | undefined;
+  user: Accessor<User | undefined>;
   login: (req: LoginDto) => void;
+  logout: () => void;
 }>({
   user: undefined,
   login: () => {},
+  logout: () => {},
 });

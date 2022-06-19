@@ -1,24 +1,33 @@
 import { createSignal, ParentComponent } from "solid-js";
-import { User } from "api";
-import { AuthContext } from "context/auth-context";
-import { useMutation } from "utils/solid-query";
-import { fetchUserByEmail } from "pages/login/queries";
-import { createStore } from "solid-js/store";
 import { useNavigate } from "solid-app-router";
+
+import { User } from "api";
+import Storage from "utils/storage";
+import { useMutation } from "utils/solid-query";
+import { AuthContext } from "context/auth-context";
+import { fetchUserByEmail } from "pages/login/queries";
 
 const AuthProvider: ParentComponent = (props) => {
   const navigate = useNavigate();
-  const [user, setUser] = createStore<User | undefined>(undefined);
+  const [user, setUser] = createSignal<User | undefined>(undefined);
 
   const { mutate: login } = useMutation(fetchUserByEmail, {
     onSuccess: (data) => {
       setUser(data.user);
       navigate("/");
+      Storage.set(import.meta.env.VITE_AUTH_TOKEN, data.token);
     },
   });
 
+  function logout() {
+    console.log("called");
+    setUser(undefined);
+    Storage.remove(import.meta.env.VITE_AUTH_TOKEN);
+    navigate("/login");
+  }
+
   return (
-    <AuthContext.Provider value={{ user, login }}>
+    <AuthContext.Provider value={{ user, login, logout }}>
       {props.children}
     </AuthContext.Provider>
   );

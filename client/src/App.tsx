@@ -1,24 +1,21 @@
 import { QueryClient } from "react-query/core";
-import { Box } from "@hope-ui/solid";
-import Navbar from "components/navbar";
-import type { Component } from "solid-js";
+import { Route, Routes } from "solid-app-router";
 import Board from "pages/board";
 import { QueryClientProvider } from "utils/solid-query";
+import Login from "pages/login";
+import AuthProvider from "components/auth-provider";
 
 const client = new QueryClient();
 
-const App: Component = () => {
+const App = () => {
   return (
     <QueryClientProvider client={client}>
-      <Box
-        display="flex"
-        width="$screenW"
-        height="$screenH"
-        flexDirection="column"
-      >
-        <Navbar />
-        <Board />
-      </Box>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<Board />} />
+          <Route path="/login" element={<Login />} />
+        </Routes>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

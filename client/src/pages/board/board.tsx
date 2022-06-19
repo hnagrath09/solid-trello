@@ -15,6 +15,7 @@ import type {
   DragEventHandler,
   Droppable,
 } from "@thisbeyond/solid-dnd";
+import Navbar from "components/navbar";
 import { useQuery, useMutation, useQueryClient } from "utils/solid-query";
 
 import List from "./components/list";
@@ -160,38 +161,46 @@ export default function Board() {
     );
 
   return (
-    <DragDropProvider
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDragEnd={onDragEnd}
-      collisionDetector={closestContainerOrItem}
+    <Box
+      display="flex"
+      width="$screenW"
+      height="$screenH"
+      flexDirection="column"
     >
-      <DragDropSensors />
-      <Box
-        p="$6"
-        width="100%"
-        h="inherit"
-        display="flex"
-        bgColor="$info8"
-        overflow="auto"
+      <Navbar />
+      <DragDropProvider
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDragEnd={onDragEnd}
+        collisionDetector={closestContainerOrItem}
       >
-        <HStack spacing="$4" alignItems="start" h="100%">
-          <SortableProvider ids={listIds()}>
-            <For each={sortedLists()}>{(list) => <List list={list} />}</For>
-          </SortableProvider>
-          <AddList listCount={lists().length} />
-        </HStack>
-      </Box>
+        <DragDropSensors />
+        <Box
+          p="$6"
+          width="100%"
+          h="inherit"
+          display="flex"
+          bgColor="$info8"
+          overflow="auto"
+        >
+          <HStack spacing="$4" alignItems="start" h="100%">
+            <SortableProvider ids={listIds()}>
+              <For each={sortedLists()}>{(list) => <List list={list} />}</For>
+            </SortableProvider>
+            <AddList listCount={lists().length} />
+          </HStack>
+        </Box>
 
-      <DragOverlay>
-        {isList(activeItem()) ? (
-          <ListOverlay list={lists().find(({ id }) => id === activeItem())} />
-        ) : (
-          <TaskOverlay
-            item={allTasks().find(({ id }) => id === activeItem())}
-          />
-        )}
-      </DragOverlay>
-    </DragDropProvider>
+        <DragOverlay>
+          {isList(activeItem()) ? (
+            <ListOverlay list={lists().find(({ id }) => id === activeItem())} />
+          ) : (
+            <TaskOverlay
+              item={allTasks().find(({ id }) => id === activeItem())}
+            />
+          )}
+        </DragOverlay>
+      </DragDropProvider>
+    </Box>
   );
 }

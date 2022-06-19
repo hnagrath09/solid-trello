@@ -298,10 +298,10 @@
   dependencies:
     "@floating-ui/core" "^0.6.1"
 
-"@hope-ui/solid@^0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@hope-ui/solid/-/solid-0.5.0.tgz#da66e7d3c80d0f4166081774d3c1f5aaa5dc43f0"
-  integrity sha512-ncVCadhhXqxac13wxSJcxPv8KVW4aSPMn4KvmpXoGI71bFLMz8TN8GwuN7t85WJBXKmhpl3WLoExUcijH1mUwg==
+"@hope-ui/solid@^0.6.2":
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/@hope-ui/solid/-/solid-0.6.2.tgz#d556fe76b2a3fd35803e83f206cb56cddf1e907d"
+  integrity sha512-hqblx2JJU3UuWjspCwr7dTClr/l+j9eXa+2f4uljvTiogLcH1sgtD3BDLk62A+cAuEA0oOekUSL68TbjF/c4DA==
   dependencies:
     "@floating-ui/dom" "0.4.4"
     csstype "3.0.11"
@@ -1677,6 +1677,11 @@ slash@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/slash/-/slash-3.0.0.tgz#6539be870c165adbd5240220dbe361f1bc4d4634"
   integrity sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==
+
+solid-app-router@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/solid-app-router/-/solid-app-router-0.4.1.tgz#cee8da5167fb1e7ce740528324118d76a3d197ba"
+  integrity sha512-RKHyFQ+J5lXyE/SoyJVHgTBeBck2etYVJn1/9F7ehlzyD2pIOMqLpNXD1GfWQljHqNdXZBSyE+xB/Cck5l9Q/g==
 
 solid-icons@^0.4.1:
   version "0.4.1"

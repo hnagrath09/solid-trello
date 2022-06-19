@@ -24,6 +24,50 @@ import { BASE_PATH, COLLECTION_FORMATS, RequestArgs, BaseAPI, RequiredError } fr
 /**
  * 
  * @export
+ * @interface CreateUserDto
+ */
+export interface CreateUserDto {
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    email: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    password: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    name: string;
+}
+/**
+ * 
+ * @export
+ * @interface CreateUserRes
+ */
+export interface CreateUserRes {
+    /**
+     * JWT token
+     * @type {string}
+     * @memberof CreateUserRes
+     */
+    token: string;
+    /**
+     * 
+     * @type {User}
+     * @memberof CreateUserRes
+     */
+    user: User;
+}
+/**
+ * 
+ * @export
  * @interface InlineObject
  */
 export interface InlineObject {
@@ -95,6 +139,25 @@ export interface List {
      * @memberof List
      */
     listOrder: number;
+}
+/**
+ * 
+ * @export
+ * @interface LoginDto
+ */
+export interface LoginDto {
+    /**
+     * 
+     * @type {string}
+     * @memberof LoginDto
+     */
+    email: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LoginDto
+     */
+    password: string;
 }
 /**
  * 
@@ -209,6 +272,31 @@ export interface UpdateTaskForm {
      */
     listId?: string;
 }
+/**
+ * 
+ * @export
+ * @interface User
+ */
+export interface User {
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    email: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    name: string;
+}
 
 /**
  * ApplicationApi - axios parameter creator
@@ -236,6 +324,10 @@ export const ApplicationApiAxiosParamCreator = function (configuration?: Configu
             const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
     
@@ -272,6 +364,10 @@ export const ApplicationApiAxiosParamCreator = function (configuration?: Configu
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            // authentication BearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
 
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
@@ -280,6 +376,45 @@ export const ApplicationApiAxiosParamCreator = function (configuration?: Configu
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(inlineObject1, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Create a new user
+         * @param {CreateUserDto} createUserDto User object
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createUser: async (createUserDto: CreateUserDto, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'createUserDto' is not null or undefined
+            assertParamExists('createUser', 'createUserDto', createUserDto)
+            const localVarPath = `/signup`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createUserDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -304,11 +439,54 @@ export const ApplicationApiAxiosParamCreator = function (configuration?: Configu
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            // authentication BearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
 
     
             setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Login a user
+         * @param {LoginDto} loginDto Login credentials
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        login: async (loginDto: LoginDto, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'loginDto' is not null or undefined
+            assertParamExists('login', 'loginDto', loginDto)
+            const localVarPath = `/login`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(loginDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -335,6 +513,10 @@ export const ApplicationApiAxiosParamCreator = function (configuration?: Configu
             const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
     
@@ -370,6 +552,10 @@ export const ApplicationApiAxiosParamCreator = function (configuration?: Configu
             const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
     
@@ -410,6 +596,10 @@ export const ApplicationApiAxiosParamCreator = function (configuration?: Configu
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            // authentication BearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
 
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
@@ -448,6 +638,10 @@ export const ApplicationApiAxiosParamCreator = function (configuration?: Configu
             const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
     
@@ -494,12 +688,32 @@ export const ApplicationApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Create a new user
+         * @param {CreateUserDto} createUserDto User object
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createUser(createUserDto: CreateUserDto, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateUserRes>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createUser(createUserDto, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get all lists
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async getAllLists(options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<List>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getAllLists(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Login a user
+         * @param {LoginDto} loginDto Login credentials
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async login(loginDto: LoginDto, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateUserRes>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.login(loginDto, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -573,12 +787,30 @@ export const ApplicationApiFactory = function (configuration?: Configuration, ba
             return localVarFp.createTask(inlineObject1, options).then((request) => request(axios, basePath));
         },
         /**
+         * Create a new user
+         * @param {CreateUserDto} createUserDto User object
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createUser(createUserDto: CreateUserDto, options?: any): AxiosPromise<CreateUserRes> {
+            return localVarFp.createUser(createUserDto, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get all lists
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         getAllLists(options?: any): AxiosPromise<Array<List>> {
             return localVarFp.getAllLists(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Login a user
+         * @param {LoginDto} loginDto Login credentials
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        login(loginDto: LoginDto, options?: any): AxiosPromise<CreateUserRes> {
+            return localVarFp.login(loginDto, options).then((request) => request(axios, basePath));
         },
         /**
          * Reorder tasks
@@ -651,6 +883,17 @@ export class ApplicationApi extends BaseAPI {
     }
 
     /**
+     * Create a new user
+     * @param {CreateUserDto} createUserDto User object
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApplicationApi
+     */
+    public createUser(createUserDto: CreateUserDto, options?: any) {
+        return ApplicationApiFp(this.configuration).createUser(createUserDto, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Get all lists
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -658,6 +901,17 @@ export class ApplicationApi extends BaseAPI {
      */
     public getAllLists(options?: any) {
         return ApplicationApiFp(this.configuration).getAllLists(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Login a user
+     * @param {LoginDto} loginDto Login credentials
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApplicationApi
+     */
+    public login(loginDto: LoginDto, options?: any) {
+        return ApplicationApiFp(this.configuration).login(loginDto, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
