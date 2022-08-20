@@ -455,6 +455,39 @@ export const ApplicationApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
+         * Validates token and returns user details if successful
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMe: async (options: any = {}): Promise<RequestArgs> => {
+            const localVarPath = `/me`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Login a user
          * @param {LoginDto} loginDto Login credentials
          * @param {*} [options] Override http request option.
@@ -707,6 +740,15 @@ export const ApplicationApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Validates token and returns user details if successful
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMe(options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<User>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMe(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Login a user
          * @param {LoginDto} loginDto Login credentials
          * @param {*} [options] Override http request option.
@@ -802,6 +844,14 @@ export const ApplicationApiFactory = function (configuration?: Configuration, ba
          */
         getAllLists(options?: any): AxiosPromise<Array<List>> {
             return localVarFp.getAllLists(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Validates token and returns user details if successful
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMe(options?: any): AxiosPromise<User> {
+            return localVarFp.getMe(options).then((request) => request(axios, basePath));
         },
         /**
          * Login a user
@@ -901,6 +951,16 @@ export class ApplicationApi extends BaseAPI {
      */
     public getAllLists(options?: any) {
         return ApplicationApiFp(this.configuration).getAllLists(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Validates token and returns user details if successful
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApplicationApi
+     */
+    public getMe(options?: any) {
+        return ApplicationApiFp(this.configuration).getMe(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

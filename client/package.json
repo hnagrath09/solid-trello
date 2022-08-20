@@ -20,7 +20,7 @@
     "vite-tsconfig-paths": "^3.4.1"
   },
   "dependencies": {
-    "@hope-ui/solid": "^0.6.2",
+    "@hope-ui/solid": "^0.6.7",
     "@openapitools/openapi-generator-cli": "^2.3.9",
     "@stitches/core": "^1.2.8",
     "@thisbeyond/solid-dnd": "^0.6.1",
