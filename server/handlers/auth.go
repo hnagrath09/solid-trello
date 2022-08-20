@@ -13,11 +13,22 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-type jwtCustomClaims struct {
+type JwtCustomClaims struct {
 	Id    string `json:"id"`
 	Email string `json:"email"`
 	Name  string `json:"name"`
 	jwt.StandardClaims
+}
+
+func (s *Server) GetMe(ctx echo.Context) error {
+	user := ctx.Get("user").(*jwt.Token)
+	claims := user.Claims.(*JwtCustomClaims)
+
+	return ctx.JSON(http.StatusOK, spec.User{
+		Id:    claims.Id,
+		Name:  claims.Name,
+		Email: claims.Email,
+	})
 }
 
 func (s *Server) CreateUser(ctx echo.Context) error {
@@ -68,7 +79,7 @@ func (s *Server) Login(ctx echo.Context) error {
 	}
 
 	if User.Password != reqBody.Password {
-		return ctx.JSON(http.StatusBadRequest, fmt.Errorf("entered password is incorrect"))
+		return ctx.JSON(http.StatusForbidden, fmt.Errorf("entered password is incorrect"))
 	}
 
 	// fetch token from utility function
@@ -92,7 +103,7 @@ func (s *Server) Login(ctx echo.Context) error {
 // utility function to generate token and set claims
 func generateTokenAndSetClaims(u *models.User) (string, error) {
 	// Set custom claims
-	claims := &jwtCustomClaims{
+	claims := &JwtCustomClaims{
 		Id:    u.ID,
 		Email: u.Email,
 		Name:  u.Name,

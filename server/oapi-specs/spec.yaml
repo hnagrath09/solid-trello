@@ -11,6 +11,19 @@ servers:
     description: Local server
 
 paths:
+  /me:
+    get:
+      operationId: GetMe
+      tags:
+        - "application"
+      description: Validates token and returns user details if successful
+      responses:
+        "200":
+          description: Get user details successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
   /signup:
     post:
       operationId: CreateUser

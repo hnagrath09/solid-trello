@@ -3,6 +3,7 @@ package middlewares
 import (
 	"net/http"
 
+	"github.com/hnagrath09/solid-trello/handlers"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -23,12 +24,16 @@ func AuthMiddleware() echo.MiddlewareFunc {
 				return true
 			case "/signup":
 				return true
+			case "/me":
+				return false
 			// @Todo: Change default to false once authentication setup is complete
 			default:
 				return true
 			}
 		},
 		SigningKey: []byte("secret"),
+		// Define custom claims type for JWT payload.
+		Claims: &handlers.JwtCustomClaims{},
 	}
 	return middleware.JWTWithConfig(config)
 }

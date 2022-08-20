@@ -260,6 +260,9 @@ type ClientInterface interface {
 
 	Login(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetMe request
+	GetMe(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateUser request  with any body
 	CreateUserWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -371,6 +374,17 @@ func (c *Client) LoginWithBody(ctx context.Context, contentType string, body io.
 
 func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLoginRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetMe(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMeRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -662,6 +676,33 @@ func NewLoginRequestWithBody(server string, contentType string, body io.Reader) 
 	return req, nil
 }
 
+// NewGetMeRequest generates requests for GetMe
+func NewGetMeRequest(server string) (*http.Request, error) {
+	var err error
+
+	queryUrl, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	basePath := fmt.Sprintf("/me")
+	if basePath[0] == '/' {
+		basePath = basePath[1:]
+	}
+
+	queryUrl, err = queryUrl.Parse(basePath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryUrl.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateUserRequest calls the generic CreateUser builder with application/json body
 func NewCreateUserRequest(server string, body CreateUserJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -896,6 +937,9 @@ type ClientWithResponsesInterface interface {
 
 	LoginWithResponse(ctx context.Context, body LoginJSONRequestBody) (*LoginResponse, error)
 
+	// GetMe request
+	GetMeWithResponse(ctx context.Context) (*GetMeResponse, error)
+
 	// CreateUser request  with any body
 	CreateUserWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader) (*CreateUserResponse, error)
 
@@ -1021,6 +1065,28 @@ func (r LoginResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LoginResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetMeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *User
+}
+
+// Status returns HTTPResponse.Status
+func (r GetMeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetMeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1190,6 +1256,15 @@ func (c *ClientWithResponses) LoginWithResponse(ctx context.Context, body LoginJ
 		return nil, err
 	}
 	return ParseLoginResponse(rsp)
+}
+
+// GetMeWithResponse request returning *GetMeResponse
+func (c *ClientWithResponses) GetMeWithResponse(ctx context.Context) (*GetMeResponse, error) {
+	rsp, err := c.GetMe(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetMeResponse(rsp)
 }
 
 // CreateUserWithBodyWithResponse request with arbitrary body returning *CreateUserResponse
@@ -1390,6 +1465,32 @@ func ParseLoginResponse(rsp *http.Response) (*LoginResponse, error) {
 	return response, nil
 }
 
+// ParseGetMeResponse parses an HTTP response from a GetMeWithResponse call
+func ParseGetMeResponse(rsp *http.Response) (*GetMeResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetMeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest User
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseCreateUserResponse parses an HTTP response from a CreateUserWithResponse call
 func ParseCreateUserResponse(rsp *http.Response) (*CreateUserResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -1512,6 +1613,9 @@ type ServerInterface interface {
 	// (POST /login)
 	Login(ctx echo.Context) error
 
+	// (GET /me)
+	GetMe(ctx echo.Context) error
+
 	// (POST /signup)
 	CreateUser(ctx echo.Context) error
 
@@ -1589,6 +1693,17 @@ func (w *ServerInterfaceWrapper) Login(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.Login(ctx)
+	return err
+}
+
+// GetMe converts echo context to params.
+func (w *ServerInterfaceWrapper) GetMe(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{""})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.GetMe(ctx)
 	return err
 }
 
@@ -1676,6 +1791,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/lists", wrapper.GetAllLists)
 	router.POST(baseURL+"/lists/reorder", wrapper.ReorderLists)
 	router.POST(baseURL+"/login", wrapper.Login)
+	router.GET(baseURL+"/me", wrapper.GetMe)
 	router.POST(baseURL+"/signup", wrapper.CreateUser)
 	router.POST(baseURL+"/task", wrapper.CreateTask)
 	router.PATCH(baseURL+"/task/:id", wrapper.UpdateTask)
@@ -1686,26 +1802,27 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+RYW0/cOBT+K5Z3HwOZAUrRPC3daisqpK1aqn1APJjkMOPi2FnbKYvQ/PfVOU4mySSZ",
-	"WweK1BeYxLfvOzd/J088MVluNGjv+OSJ58KKDDxYepIp/dV8wnPhZzziWmTAJzgQcQv/FtJCyifeFhBx",
-	"l8wgE7gC/hNZrnAinMLx6dHp6UHy9s344EScjQ7O4OT44M1JcpeKtyIZHd3yiPvHHGc7b6We8vl8Xu1G",
-	"MP60IDx8dWDfe0MorcnBegk0DJmQqn2sMxkYDX+Ubw4Tk3VPqdg0F340M83eG+ibnQvnHoxN2ysWb7ss",
-	"mia6LmFGzQV0/s1iobn9BonHo2rGnwPHNmNv7kHjjxRcYmXupUEfffznioWhHvSFA4tLfrdwxyf8t7h2",
-	"fFzaOsYDO7irHWmDPrCX0vkuRpnuIxIirqTzf9s0gG/zpdfM3DE/A4bzmNT0+9aIpkOk9jBFZhH3wt0H",
-	"eB4yt84eV8Ld06qwj7BWPNKz9GopcC40+2TN1IJzayOBsifsUSFq8uy1sZlKvefo33c89+H+DAY5YYi4",
-	"v4zNuviR98VzxMpiu3E3EJaolBjWOaEkg1ExQAaduS8yuNf6wJeO4cQq8pEAj7bhXkJuntfHnVLhWZM8",
-	"2K1N9JKSOmXCOZNI4SFlD9LPat5Nrq/O0r2FAg3JxtvViEV8rvbR1zwVHtBmw6m2UXrsVOEG4CDfdZn/",
-	"Kzu9a7byot5Xmd9Xjm4jlvqCubovBkQPSj5ICiv94xe8fgPtdyAs2PPCz/Dplp4wmoQPeoeXQhF3CqM1",
-	"mJn3edCSUt/RzVl6hn8xSqbsyoJShp1/uuAR/w7WBe+PD0eHIyRsctAil3zCj+lVRCKYYMWq0jwm/G8H",
-	"UJBvTFTxgo4UOIbhXo5ehiE0Ezj/zqSPuE9itAdNW4o8VzKhZfE3Z0jv1RL7JTO7dV00StJQJcI1PSnt",
-	"DUuIeqd3oDNcbrQLdI5G462MsUrDkZ2HIAU8KXNFkoBzd4VSjyErxdQh3ca5/AYHyPPxk0znoV3yyazr",
-	"/1D5hvxfl2kKqbrhuu5nUk+JZcrnN7sHzUrt3748VjixoJkbOHH0Mk4MeLZ2IoGcQk/6fgDPhFIszFp2",
-	"3wfw50pdlmM/RHmjJiRwX25CurZood7aGLEN4na4qJXql1UNS9sqTaH/A2VtI4t0mooNrEOiHaO34vka",
-	"alAAVSLaMoKxIRx2FvWLTDBq2pd9RYP8ecrIolHty1YClVhIQXsplHvRGtL+ptIPbwrpgdTb+MHJqS7y",
-	"DaSAhod+b9S4nskl7c9nPcRxiJWX90umxVqPELAd7mhfNaurXVL2En3uuApD+1NnS18Fxus6kq1F3Hma",
-	"MuTLSsy13KLQq6r2ZuquhrJoPjeRedTm/ByZFz7VDUDaMYQ2lnm9gVS3v69P5i2a8hVO/Akyb6UTd5B5",
-	"FPR7UjZX5eBLKJv6C+NrVzarPLaLsml8BaBEafb/1zeYFA7s9yqNCqvKPn8Sx8okQs2M85Oz0Rl268u3",
-	"eyIUC6v5/Gb+fwAAAP//94QJdPoaAAA=",
+	"H4sIAAAAAAAC/+RYXW/bNhf+KwTf99KJ7SRNA18tXbEiRYYVbbpdBLlgxGObDU1qJNUsCPzfh3MoWZIl",
+	"f8h13AC7SSzx63nOl57DZ57YWWoNmOD56JmnwokZBHD0pCT9NXzEUxGmvMeNmAEf4UCPO/g7Uw4kHwWX",
+	"QY/7ZAozgSvgHzFLNU6Eczg9Pzk/P0revhkenYmLwdEFnJ0evTlLxlK8Fcng5J73eHhKcbYPTpkJn8/n",
+	"xW4E41cHIsBXD+59sITS2RRcUEDDMBNK14/1dgbWwC/5m+PEzpqnFGyqCz/aqWHvLbTNToX3j9bJ+orF",
+	"2yaLqoluc5i96gI6/26x0N5/gyTgUSXjz5FjnXGwD2DwhwSfOJUGZdFHH/+6YXGoBX3mweGS/zsY8xH/",
+	"X790fD+3dR8PbOAudqQN2sBeKx+aGJXcRyT0uFY+/OFkBF/nS6+ZHbMwBYbzmDL0+96KqkOUCTBBZj0e",
+	"hH+I8ALM/CZ73Aj/QKviPsI58UTPKuilwLky7JOzEwfeb4wEyp64R4GoyrPVxnaizJ6jf9/x3Ib7M1jk",
+	"hCHif7Nu1sSPvK9eIlYW2w2bgbBEJcewyQk5GYyKFWTQmfsig3ttDnzlGU4sIh8J8F4X7jnk6nlt3CkV",
+	"XjTJo93qRK8pqSUT3ttEiQCSPaowLXlXub46S7cWCjQkG3arEYv4XO+jr6kUAdBmq1Ntq/TYqcKtgIN8",
+	"N2X+f9npTbPlH+p9lfl95WgXsdQWzMX3YoXoQckHSeZUePqCn99I+x0IB+4yC1N8uqcnjCYRot7huVDE",
+	"neJoCWYaQhq1pDJj+nLmnuFfrFaS3TjQ2rLLT1e8x7+D89H7w+PB8QAJ2xSMSBUf8VN61SMRTLD6utA8",
+	"Nv6vB1CUb0wU8YKOFDiG4Z6PXschNBP48M7KJ9wnsSaAoS1FmmqV0LL+N29J75US+5CZXftcVErSqkqE",
+	"a1pSOliWEPVG70Bn+NQaH+mcDIadjLFOw5GdV0GKeCTzWZKA9+NM66eYlWLikW7lXH6HA+T5/rOS89gu",
+	"hWTa9H+sfKv8X5ZpCqmy4bptZ1JO6SvJ53e7B81a7V//eKxxYkYzt3Di4DBOjHg6O5FATqAlfT9AYEJr",
+	"Fmctu+8DhEutr/OxH6K8VRMSuS83IU1b1FB3NkbfRXG7uqjl6pcVDUvdKlWh/wNlbSuLNJqKLaxDoh2j",
+	"t+D5GmpQBJUj6hjB2BCudhb1i0wwatqXfUWD/GXKyKJRbctWApU4kGCCEtoftIbU71Ta4U1AHinTxQ9R",
+	"E7WWkT+FVliZfLyUYcJI5iBkznjyC5MQhNKeqXHlxLZ68zvwFzRMfuvTWlBqODuYxauJydItFJKBx/Yg",
+	"Ld31QpFav1Vs4Y9DLNc0h6wWGwOVgO0gXULRw693Sd5itbnjJg7tT7QuXZYMNzVqnbXtpZQM+bIcc6lC",
+	"KfSKj9l2oreEsujJt1G/1P39HPUbbzBXQNoxhLZWv62BVN4KvD71u7irWOPEn6B+1zpxB/VLQb8nwXeT",
+	"Dx5C8JUXr69d8K3z2C6Cr3I5QolSvRa5vcOk8OC+F2mUOZ1ff4z6fW0ToafWh9HF4GLAm6InEZrF1Xx+",
+	"N/83AAD//y2MpfkRHAAA",
 }
 
 // GetSwagger returns the Swagger specification corresponding to the generated code
